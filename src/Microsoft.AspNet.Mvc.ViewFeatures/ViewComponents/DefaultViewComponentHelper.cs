@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -15,12 +16,15 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         private readonly IViewComponentDescriptorCollectionProvider _descriptorProvider;
         private readonly IViewComponentInvokerFactory _invokerFactory;
         private readonly IViewComponentSelector _selector;
+#pragma warning disable 0618
+        private readonly TelemetrySource _telemetry;
         private ViewContext _viewContext;
 
         public DefaultViewComponentHelper(
             IViewComponentDescriptorCollectionProvider descriptorProvider,
             IViewComponentSelector selector,
-            IViewComponentInvokerFactory invokerFactory)
+            IViewComponentInvokerFactory invokerFactory,
+            TelemetrySource telemetry)
         {
             if (descriptorProvider == null)
             {
@@ -40,7 +44,9 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             _descriptorProvider = descriptorProvider;
             _selector = selector;
             _invokerFactory = invokerFactory;
+            _telemetry = telemetry;
         }
+#pragma warning restore 0618
 
         public void Contextualize(ViewContext viewContext)
         {
@@ -210,7 +216,13 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(descriptor.Type.FullName));
             }
 
-            return invoker.InvokeAsync(context);
+            WriteTelemetryIfEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent", context);
+
+            var result = invoker.InvokeAsync(context);
+
+            WriteTelemetryIfEnabled("Microsoft.AspNet.Mvc.AfterViewComponent", context);
+
+            return result;
         }
 
         private void InvokeCore(
@@ -237,7 +249,23 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(descriptor.Type.FullName));
             }
 
+            WriteTelemetryIfEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent", context);
+
             invoker.Invoke(context);
+
+            WriteTelemetryIfEnabled("Microsoft.AspNet.Mvc.AfterViewComponent", context);
+        }
+
+        private void WriteTelemetryIfEnabled(string telemetryName, ViewComponentContext context)
+        {
+#pragma warning disable 0618
+            if (_telemetry.IsEnabled(telemetryName))
+            {
+                _telemetry.WriteTelemetry(
+                    telemetryName,
+                    new { viewComponentContext = context });
+            }
+#pragma warning restore 0618
         }
     }
 }

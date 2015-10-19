@@ -220,5 +220,37 @@ namespace Microsoft.AspNet.Mvc
                 ViewContext = viewContext,
             };
         }
+
+        public class OnBeforeViewComponentEventData
+        {
+            public IProxyViewComponentContext ViewComponentContext { get; set; }
+        }
+
+        public OnBeforeViewComponentEventData BeforeViewComponent { get; set; }
+
+        [TelemetryName("Microsoft.AspNet.Mvc.BeforeViewComponent")]
+        public virtual void OnBeforeViewComponent(IProxyViewComponentContext viewComponentContext)
+        {
+            BeforeViewComponent = new OnBeforeViewComponentEventData()
+            {
+                ViewComponentContext = viewComponentContext,
+            };
+        }
+
+        public class OnAfterViewComponentEventData
+        {
+            public IProxyViewComponentContext ViewComponentContext { get; set; }
+        }
+
+        public OnAfterViewComponentEventData AfterViewComponent { get; set; }
+
+        [TelemetryName("Microsoft.AspNet.Mvc.AfterViewComponent")]
+        public virtual void OnAfterViewComponent(IProxyViewComponentContext viewComponentContext)
+        {
+            AfterViewComponent = new OnAfterViewComponentEventData()
+            {
+                ViewComponentContext = viewComponentContext,
+            };
+        }
     }
 }

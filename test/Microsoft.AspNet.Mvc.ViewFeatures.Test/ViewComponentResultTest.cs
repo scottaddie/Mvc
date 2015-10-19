@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -76,7 +77,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var expected = $"A view component named '{typeof(TextViewComponent).FullName}' could not be found.";
 
-            var services = CreateServices();
+            var services = CreateServices(telemetryListener: null);
             services.AddSingleton<IViewComponentSelector>();
 
             var actionContext = CreateActionContext();
@@ -148,6 +149,41 @@ namespace Microsoft.AspNet.Mvc
             var body = ReadBody(actionContext.HttpContext.Response);
             Assert.Equal("Hello-Async, World!", body);
         }
+
+#pragma warning disable 0618
+        [Fact]
+        public async Task ExecuteResultAsync_ExecutesViewComponent_AndWritesTelemetry()
+        {
+            // Arrange
+            var descriptor = new ViewComponentDescriptor()
+            {
+                FullName = "Full.Name.Text",
+                ShortName = "Text",
+                Type = typeof(TextViewComponent),
+            };
+
+            var adapter = new TestTelemetryListener();
+
+            var actionContext = CreateActionContext(adapter, descriptor);
+
+            var viewComponentResult = new ViewComponentResult()
+            {
+                Arguments = new object[] { "World!" },
+                ViewComponentName = "Text",
+                TempData = _tempDataDictionary,
+            };
+
+            // Act
+            await viewComponentResult.ExecuteResultAsync(actionContext);
+
+            // Assert
+            var body = ReadBody(actionContext.HttpContext.Response);
+            Assert.Equal("Hello, World!", body);
+
+            Assert.NotNull(adapter.BeforeViewComponent?.ViewComponentContext);
+            Assert.NotNull(adapter.AfterViewComponent?.ViewComponentContext);
+        }
+#pragma warning restore 0618
 
         [Fact]
         public async Task ExecuteResultAsync_ExecutesViewComponent_ByShortName()
@@ -387,9 +423,17 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
         }
 
-        private IServiceCollection CreateServices(params ViewComponentDescriptor[] descriptors)
+#pragma warning disable 0618
+        private IServiceCollection CreateServices(object telemetryListener, params ViewComponentDescriptor[] descriptors)
         {
+            var telemetry = new TelemetryListener("Microsoft.AspNet");
+            if (telemetryListener != null)
+            {
+                telemetry.SubscribeWithAdapter(telemetryListener);
+            }
+
             var services = new ServiceCollection();
+            services.AddInstance<TelemetrySource>(telemetry);
             services.AddSingleton<IOptions<MvcViewOptions>, TestOptionsManager<MvcViewOptions>>();
             services.AddTransient<IViewComponentHelper, DefaultViewComponentHelper>();
             services.AddSingleton<IViewComponentSelector, DefaultViewComponentSelector>();
@@ -403,10 +447,11 @@ namespace Microsoft.AspNet.Mvc
 
             return services;
         }
+#pragma warning restore 0618
 
-        private HttpContext CreateHttpContext(params ViewComponentDescriptor[] descriptors)
+        private HttpContext CreateHttpContext(object telemetryListener, params ViewComponentDescriptor[] descriptors)
         {
-            var services = CreateServices(descriptors);
+            var services = CreateServices(telemetryListener, descriptors);
 
             var httpContext = new DefaultHttpContext();
             httpContext.Response.Body = new MemoryStream();
@@ -414,11 +459,16 @@ namespace Microsoft.AspNet.Mvc
 
             return httpContext;
         }
+        private ActionContext CreateActionContext(object telemetryListener, params ViewComponentDescriptor[] descriptors)
+        {
+            return new ActionContext(CreateHttpContext(telemetryListener, descriptors), new RouteData(), new ActionDescriptor());
+        }
 
         private ActionContext CreateActionContext(params ViewComponentDescriptor[] descriptors)
         {
-            return new ActionContext(CreateHttpContext(descriptors), new RouteData(), new ActionDescriptor());
+            return CreateActionContext(null, descriptors);
         }
+
 
         private class FixedSetViewComponentDescriptorProvider : IViewComponentDescriptorProvider
         {
