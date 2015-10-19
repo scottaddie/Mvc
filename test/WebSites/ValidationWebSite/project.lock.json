@@ -3507,7 +3507,7 @@
           "System.Threading.Tasks": "4.0.0"
         },
         "compile": {
-          "ref/dotnet/System.IO.Compression.dll": {}
+          "lib/contract/System.IO.Compression.dll": {}
         },
         "runtime": {
           "lib/dotnet/System.IO.Compression.dll": {}
@@ -4062,8 +4062,12 @@
       },
       "System.Threading.Overlapped/4.0.0": {
         "type": "package",
+        "dependencies": {
+          "System.Runtime": "4.0.0",
+          "System.Runtime.Handles": "4.0.0"
+        },
         "compile": {
-          "lib/contract/System.Threading.Overlapped.dll": {}
+          "ref/dotnet/System.Threading.Overlapped.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Overlapped.dll": {}
@@ -9805,7 +9809,17 @@
         }
       },
       "System.Globalization.Calendars/4.0.0": {
-        "type": "package"
+        "type": "package",
+        "dependencies": {
+          "System.Globalization": "4.0.0",
+          "System.Runtime": "4.0.0"
+        },
+        "compile": {
+          "ref/dotnet/System.Globalization.Calendars.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Globalization.Calendars.dll": {}
+        }
       },
       "System.Globalization.Extensions/4.0.1-beta-23409": {
         "type": "package",
@@ -9846,7 +9860,7 @@
           "System.Threading.Tasks": "4.0.0"
         },
         "compile": {
-          "ref/dotnet/System.IO.Compression.dll": {}
+          "lib/contract/System.IO.Compression.dll": {}
         },
         "runtime": {
           "lib/dotnet/System.IO.Compression.dll": {}
@@ -10107,13 +10121,13 @@
           "lib/DNXCore50/System.Reflection.Emit.ILGeneration.dll": {}
         }
       },
-      "System.Reflection.Emit.Lightweight/4.0.0": {
+      "System.Reflection.Emit.Lightweight/4.0.0-beta-23109": {
         "type": "package",
         "dependencies": {
-          "System.Reflection": "4.0.0",
-          "System.Reflection.Emit.ILGeneration": "4.0.0",
-          "System.Reflection.Primitives": "4.0.0",
-          "System.Runtime": "4.0.0"
+          "System.Reflection": "4.0.0-beta-23109",
+          "System.Reflection.Emit.ILGeneration": "4.0.0-beta-23109",
+          "System.Reflection.Primitives": "4.0.0-beta-23109",
+          "System.Runtime": "4.0.0-beta-23109"
         },
         "compile": {
           "ref/dotnet/System.Reflection.Emit.Lightweight.dll": {}
@@ -10468,8 +10482,12 @@
       },
       "System.Threading.Overlapped/4.0.0": {
         "type": "package",
+        "dependencies": {
+          "System.Runtime": "4.0.0",
+          "System.Runtime.Handles": "4.0.0"
+        },
         "compile": {
-          "lib/contract/System.Threading.Overlapped.dll": {}
+          "ref/dotnet/System.Threading.Overlapped.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Overlapped.dll": {}
@@ -12721,7 +12739,17 @@
         }
       },
       "System.Globalization.Calendars/4.0.0": {
-        "type": "package"
+        "type": "package",
+        "dependencies": {
+          "System.Globalization": "4.0.0",
+          "System.Runtime": "4.0.0"
+        },
+        "compile": {
+          "ref/dotnet/System.Globalization.Calendars.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Globalization.Calendars.dll": {}
+        }
       },
       "System.Globalization.Extensions/4.0.1-beta-23409": {
         "type": "package",
@@ -12762,7 +12790,7 @@
           "System.Threading.Tasks": "4.0.0"
         },
         "compile": {
-          "ref/dotnet/System.IO.Compression.dll": {}
+          "lib/contract/System.IO.Compression.dll": {}
         },
         "runtime": {
           "lib/dotnet/System.IO.Compression.dll": {}
@@ -13023,13 +13051,13 @@
           "lib/DNXCore50/System.Reflection.Emit.ILGeneration.dll": {}
         }
       },
-      "System.Reflection.Emit.Lightweight/4.0.0": {
+      "System.Reflection.Emit.Lightweight/4.0.0-beta-23109": {
         "type": "package",
         "dependencies": {
-          "System.Reflection": "4.0.0",
-          "System.Reflection.Emit.ILGeneration": "4.0.0",
-          "System.Reflection.Primitives": "4.0.0",
-          "System.Runtime": "4.0.0"
+          "System.Reflection": "4.0.0-beta-23109",
+          "System.Reflection.Emit.ILGeneration": "4.0.0-beta-23109",
+          "System.Reflection.Primitives": "4.0.0-beta-23109",
+          "System.Runtime": "4.0.0-beta-23109"
         },
         "compile": {
           "ref/dotnet/System.Reflection.Emit.Lightweight.dll": {}
@@ -13384,8 +13412,12 @@
       },
       "System.Threading.Overlapped/4.0.0": {
         "type": "package",
+        "dependencies": {
+          "System.Runtime": "4.0.0",
+          "System.Runtime.Handles": "4.0.0"
+        },
         "compile": {
-          "lib/contract/System.Threading.Overlapped.dll": {}
+          "ref/dotnet/System.Threading.Overlapped.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Overlapped.dll": {}
@@ -14167,7 +14199,7 @@
     },
     "Microsoft.CodeAnalysis.Analyzers/1.0.0": {
       "type": "package",
-      "sha512": "E7VdmGw6xO3VHWapC+pNLZmo6yncS53UY3bmb5WZm9wliJBB1A6brgzKA4fcqiLrmJFx71r0M2zEbRDphRLUNg==",
+      "sha512": "2+V/VDgZu59Thrlp+FQH38H/SmPBegMKsG0ie1ZZyHtx7kJNEozIx/p9zs0UrolX0uyYX7Ouoj3Q3Be15lqXxA==",
       "files": [
         "analyzers/dotnet/cs/Microsoft.CodeAnalysis.Analyzers.dll",
         "analyzers/dotnet/cs/Microsoft.CodeAnalysis.CSharp.Analyzers.dll",
@@ -14183,7 +14215,7 @@
     },
     "Microsoft.CodeAnalysis.Common/1.1.0-beta1-20150928-02": {
       "type": "package",
-      "sha512": "xKnzqBFJCJlZNFd0iE5GKBx7hIJVIwEM+67A4t16Bs2oFqeufkF1ABcwKQO7ZKjprHAjjG29tlXXFn/0L7eFBw==",
+      "sha512": "qNudc/ue3MXTUPCt6QK2HyNPhiUYyZCBjY6TvTAGlHcjANz32El4XMrODPN3NXxF2e2QzpwGUiKtua6XsPDLrQ==",
       "files": [
         "lib/net45/Microsoft.CodeAnalysis.dll",
         "lib/net45/Microsoft.CodeAnalysis.xml",
@@ -14197,7 +14229,7 @@
     },
     "Microsoft.CodeAnalysis.CSharp/1.1.0-beta1-20150928-02": {
       "type": "package",
-      "sha512": "on4/jG99VyXua5WHY3LQL8jBjmvo1O6je6oIFpEDxVFFTnX9TtMJx8PgVLZhh3HsT0ZMTWfyI7H7Tt+enLg0vA==",
+      "sha512": "8QxHximRTuY9TWSZzTa/4bplILVSrljK65wkAT9+GenaOg1rB5d5sQKJysNw/SpEHzbAGrUnP4pw0gAqGZz0Ug==",
       "files": [
         "lib/net45/Microsoft.CodeAnalysis.CSharp.dll",
         "lib/net45/Microsoft.CodeAnalysis.CSharp.xml",
@@ -14969,7 +15001,7 @@
     "runtime.win7.Microsoft.Win32.Primitives/4.0.1-beta-23409": {
       "type": "package",
       "serviceable": true,
-      "sha512": "QWfMUR88YXL0Wyyv1vuuGTjYDeqUe0w0TOYSRa3dCkotfTRJVFeWEaUMyTZJy7NhUEju5+Bw7FA1DW2SCcS3sA==",
+      "sha512": "0DZ1U8aTSfnEfj8KGnvCpFR/KdSFzYlW4dLNpXyESvp/RvrTjzP1Lb4DKOEc/QSxj5/al7ctLsXIzUCfCz290Q==",
       "files": [
         "ref/dotnet/_._",
         "runtime.win7.Microsoft.Win32.Primitives.4.0.1-beta-23409.nupkg",
@@ -15319,7 +15351,7 @@
     "runtime.win7.System.Security.Cryptography.X509Certificates/4.0.0-beta-23409": {
       "type": "package",
       "serviceable": true,
-      "sha512": "piL7Q/rkUlBDt8S9hRxLUV/8yyvxPCZg7mUcGIQU2k2c+PATWAMxlj6SLGvjsE/dY9jDQ1No8jI/wgXRPE7zRA==",
+      "sha512": "J5nq/o7zwKM9ztl1E5nNCsZMQUks1TV28m94aMzvpyZaqMvoDMZZrtS77FLMMDIj5HwtJu7PZ3y6wx1UlsjRXA==",
       "files": [
         "ref/dotnet/_._",
         "runtime.win7.System.Security.Cryptography.X509Certificates.4.0.0-beta-23409.nupkg",
@@ -15694,7 +15726,7 @@
     "System.ComponentModel.TypeConverter/4.0.1-beta-23409": {
       "type": "package",
       "serviceable": true,
-      "sha512": "xZeWPGIho3SC93yRXMwyR+BsFfQLdLuzDy42pySd44u7GAp4FZgxaduqGhNi64R0OM3XG5cRbcgPihNDEXbvmg==",
+      "sha512": "TBQngXy9JugrGm2btaGlRiXDS/pJtLKeMEp2YS0wk6OgPs1dhnEO3jjwEbx44pr3R5DQjrQg0CNvns8AQmJOcA==",
       "files": [
         "lib/dotnet/de/System.ComponentModel.TypeConverter.xml",
         "lib/dotnet/es/System.ComponentModel.TypeConverter.xml",
@@ -16112,7 +16144,7 @@
     "System.Dynamic.Runtime/4.0.11-beta-23409": {
       "type": "package",
       "serviceable": true,
-      "sha512": "zX0nZtDbE50udbwQuxXspjFM7/Pgh6TMQdRaKd/ZLiB3PbYNm5G7Kjm32lxldrmEHns9i95JWKVCBiO8x7JW3g==",
+      "sha512": "vUo1BgT6X74QvxdKeaQkY/s0lXA7D97lsXnAo/5cXjHFReIJi0YgqP6WJxRp34Qy/vwdLQSQJotTLjLa6bhbnQ==",
       "files": [
         "lib/DNXCore50/de/System.Dynamic.Runtime.xml",
         "lib/DNXCore50/es/System.Dynamic.Runtime.xml",
@@ -16189,10 +16221,32 @@
     },
     "System.Globalization.Calendars/4.0.0": {
       "type": "package",
-      "sha512": "unNM3UgK0kR9ac/9a74aGOMSz6SgJXHCw+EYpYBe4LBm++7JROLe2uRhx8CJbkeWsM3ySnfJrGwkPSSM0ZmNAA==",
+      "sha512": "cL6WrdGKnNBx9W/iTr+jbffsEO4RLjEtOYcpVSzPNDoli6X5Q6bAfWtJYbJNOPi8Q0fXgBEvKK1ncFL/3FTqlA==",
       "files": [
-        "lib/aspnetcore50/System.Globalization.Calendars.dll",
-        "lib/contract/System.Globalization.Calendars.dll",
+        "lib/DNXCore50/System.Globalization.Calendars.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/System.Globalization.Calendars.dll",
+        "lib/netcore50/System.Globalization.Calendars.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/dotnet/de/System.Globalization.Calendars.xml",
+        "ref/dotnet/es/System.Globalization.Calendars.xml",
+        "ref/dotnet/fr/System.Globalization.Calendars.xml",
+        "ref/dotnet/it/System.Globalization.Calendars.xml",
+        "ref/dotnet/ja/System.Globalization.Calendars.xml",
+        "ref/dotnet/ko/System.Globalization.Calendars.xml",
+        "ref/dotnet/ru/System.Globalization.Calendars.xml",
+        "ref/dotnet/System.Globalization.Calendars.dll",
+        "ref/dotnet/System.Globalization.Calendars.xml",
+        "ref/dotnet/zh-hans/System.Globalization.Calendars.xml",
+        "ref/dotnet/zh-hant/System.Globalization.Calendars.xml",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/System.Globalization.Calendars.dll",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Globalization.Calendars.dll",
         "System.Globalization.Calendars.4.0.0.nupkg",
         "System.Globalization.Calendars.4.0.0.nupkg.sha512",
         "System.Globalization.Calendars.nuspec"
@@ -16347,6 +16401,8 @@
       "serviceable": true,
       "sha512": "S+ljBE3py8pujTrsOOYHtDg2cnAifn6kBu/pfh1hMWIXd8DoVh0ADTA6Puv4q+nYj+Msm6JoFLNwuRSmztbsDQ==",
       "files": [
+        "lib/aspnetcore50/System.IO.Compression.dll",
+        "lib/contract/System.IO.Compression.dll",
         "lib/dotnet/System.IO.Compression.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -16655,7 +16711,7 @@
     "System.Net.Sockets/4.1.0-beta-23409": {
       "type": "package",
       "serviceable": true,
-      "sha512": "v+oQgsXYbwZal83dd5ryeSWYdXMydLqY90vc4CtAOPOcT8u8vC1W/tYou6GdR0HIKf6zt1PGFC5GkKi7Cj1HdA==",
+      "sha512": "UALxIoOvd5QFGYEt+QIR7KivZbDO+OXVlHlmZ8iMwHTzdif+eYbWgLjpF2oa86OsMbOeVtTzOSFDn6xMTZ5YdQ==",
       "files": [
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -16924,9 +16980,9 @@
         "System.Reflection.Emit.ILGeneration.nuspec"
       ]
     },
-    "System.Reflection.Emit.Lightweight/4.0.0": {
+    "System.Reflection.Emit.Lightweight/4.0.0-beta-23109": {
       "type": "package",
-      "sha512": "DJZhHiOdkN08xJgsJfDjkuOreLLmMcU8qkEEqEHqyhkPUZMMQs0lE8R+6+68BAFWgcdzxtNu0YmIOtEug8j00w==",
+      "sha512": "Kbg03ijw7jZUswutleX/zmGgz6VYszTuyy4DciBn1PHFYAqAgZFZdK3cpYCsAU+cPliQ35UcOX828OsAG9NU4w==",
       "files": [
         "lib/DNXCore50/System.Reflection.Emit.Lightweight.dll",
         "lib/net45/_._",
@@ -16945,8 +17001,8 @@
         "ref/dotnet/zh-hant/System.Reflection.Emit.Lightweight.xml",
         "ref/net45/_._",
         "ref/wp80/_._",
-        "System.Reflection.Emit.Lightweight.4.0.0.nupkg",
-        "System.Reflection.Emit.Lightweight.4.0.0.nupkg.sha512",
+        "System.Reflection.Emit.Lightweight.4.0.0-beta-23109.nupkg",
+        "System.Reflection.Emit.Lightweight.4.0.0-beta-23109.nupkg.sha512",
         "System.Reflection.Emit.Lightweight.nuspec"
       ]
     },
@@ -18027,10 +18083,8 @@
     "System.Threading.Overlapped/4.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "MoePL55naRl0wyIVAv+YuE61G8KDE/kEQFOL/uOkiSUJH5oieBdgUToF3vdHkfRPllgze/nWU7WzpUbviXEW3w==",
+      "sha512": "X5LuQFhM5FTqaez3eXKJ9CbfSGZ7wj6j4hSVtxct3zmwQXLqG95qoWdvILcgN7xtrDOBIFtpiyDg0vmoI0jE2A==",
       "files": [
-        "lib/aspnetcore50/System.Threading.Overlapped.dll",
-        "lib/contract/System.Threading.Overlapped.dll",
         "lib/DNXCore50/System.Threading.Overlapped.dll",
         "lib/net46/System.Threading.Overlapped.dll",
         "lib/netcore50/System.Threading.Overlapped.dll",
@@ -18108,7 +18162,7 @@
     "System.Threading.Tasks.Parallel/4.0.1-beta-23409": {
       "type": "package",
       "serviceable": true,
-      "sha512": "xVMdH5EDVLO+q/k/RRzeG1hXyW7jh79WV2f4aeq1C6+z1tyG9H9UQ3dIHkWf6QJbsXbYjSOn/zvMnPnr17JWAg==",
+      "sha512": "ByYnzdR4E1hKE3IlWzqnlNI+NCkTNrU4KgFHZIFOWO3M77McWJZB5HXdPNn2wrwedwG5CWhkqEZQo3no6+MeTw==",
       "files": [
         "lib/dotnet/de/System.Threading.Tasks.Parallel.xml",
         "lib/dotnet/es/System.Threading.Tasks.Parallel.xml",

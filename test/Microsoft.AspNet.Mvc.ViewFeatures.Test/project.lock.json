@@ -478,11 +478,11 @@
           "Microsoft.Framework.PropertyHelper.Sources": "1.0.0-beta8"
         }
       },
-      "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestCommon/6.0.0": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
-      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
@@ -1998,11 +1998,11 @@
           "Microsoft.Framework.PropertyHelper.Sources": "1.0.0-beta8"
         }
       },
-      "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestCommon/6.0.0": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
-      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
@@ -3518,11 +3518,11 @@
           "Microsoft.Framework.PropertyHelper.Sources": "1.0.0-beta8"
         }
       },
-      "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestCommon/6.0.0": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
-      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
@@ -4608,11 +4608,11 @@
       "type": "project",
       "path": "../../src/Microsoft.AspNet.Mvc.Razor.Host/project.json"
     },
-    "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151016064019": {
+    "Microsoft.AspNet.Mvc.TestCommon/6.0.0": {
       "type": "project",
       "path": "../Microsoft.AspNet.Mvc.TestCommon/project.json"
     },
-    "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151016064019": {
+    "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0": {
       "type": "project",
       "path": "../Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/project.json"
     },
@@ -4964,7 +4964,7 @@
     },
     "Microsoft.CodeAnalysis.Analyzers/1.0.0": {
       "type": "package",
-      "sha512": "E7VdmGw6xO3VHWapC+pNLZmo6yncS53UY3bmb5WZm9wliJBB1A6brgzKA4fcqiLrmJFx71r0M2zEbRDphRLUNg==",
+      "sha512": "2+V/VDgZu59Thrlp+FQH38H/SmPBegMKsG0ie1ZZyHtx7kJNEozIx/p9zs0UrolX0uyYX7Ouoj3Q3Be15lqXxA==",
       "files": [
         "analyzers/dotnet/cs/Microsoft.CodeAnalysis.Analyzers.dll",
         "analyzers/dotnet/cs/Microsoft.CodeAnalysis.CSharp.Analyzers.dll",
@@ -4980,7 +4980,7 @@
     },
     "Microsoft.CodeAnalysis.Common/1.1.0-beta1-20150928-02": {
       "type": "package",
-      "sha512": "xKnzqBFJCJlZNFd0iE5GKBx7hIJVIwEM+67A4t16Bs2oFqeufkF1ABcwKQO7ZKjprHAjjG29tlXXFn/0L7eFBw==",
+      "sha512": "qNudc/ue3MXTUPCt6QK2HyNPhiUYyZCBjY6TvTAGlHcjANz32El4XMrODPN3NXxF2e2QzpwGUiKtua6XsPDLrQ==",
       "files": [
         "lib/net45/Microsoft.CodeAnalysis.dll",
         "lib/net45/Microsoft.CodeAnalysis.xml",
@@ -4994,7 +4994,7 @@
     },
     "Microsoft.CodeAnalysis.CSharp/1.1.0-beta1-20150928-02": {
       "type": "package",
-      "sha512": "on4/jG99VyXua5WHY3LQL8jBjmvo1O6je6oIFpEDxVFFTnX9TtMJx8PgVLZhh3HsT0ZMTWfyI7H7Tt+enLg0vA==",
+      "sha512": "8QxHximRTuY9TWSZzTa/4bplILVSrljK65wkAT9+GenaOg1rB5d5sQKJysNw/SpEHzbAGrUnP4pw0gAqGZz0Ug==",
       "files": [
         "lib/net45/Microsoft.CodeAnalysis.CSharp.dll",
         "lib/net45/Microsoft.CodeAnalysis.CSharp.xml",
