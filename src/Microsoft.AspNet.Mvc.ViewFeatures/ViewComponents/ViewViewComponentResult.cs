@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -19,6 +20,8 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         // {0} is the component name, {1} is the view name.
         private const string ViewPathFormat = "Components/{0}/{1}";
         private const string DefaultViewName = "Default";
+
+        private DiagnosticSource _diagnosticSource;
 
         /// <summary>
         /// Gets or sets the view name.
@@ -115,7 +118,36 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
             using (view as IDisposable)
             {
+                if (_diagnosticSource == null)
+                {
+                    _diagnosticSource = context.ViewContext.HttpContext.RequestServices.GetRequiredService<DiagnosticSource>();
+                }
+
+                if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.ViewComponentBeforeViewExecute"))
+                {
+                    _diagnosticSource.Write(
+                        "Microsoft.AspNet.Mvc.ViewComponentBeforeViewExecute",
+                        new
+                        {
+                            actionDescriptor = context.ViewContext.ActionDescriptor,
+                            viewComponentContext = context,
+                            view = view
+                        });
+                }
+
                 await view.RenderAsync(childViewContext);
+
+                if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.ViewComponentAfterViewExecute"))
+                {
+                    _diagnosticSource.Write(
+                        "Microsoft.AspNet.Mvc.ViewComponentAfterViewExecute",
+                        new
+                        {
+                            actionDescriptor = context.ViewContext.ActionDescriptor,
+                            viewComponentContext = context,
+                            view = view
+                        });
+                }
             }
         }
 

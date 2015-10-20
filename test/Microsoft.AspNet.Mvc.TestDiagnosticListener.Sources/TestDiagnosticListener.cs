@@ -260,5 +260,51 @@ namespace Microsoft.AspNet.Mvc
                 ViewComponentContext = viewComponentContext
             };
         }
+
+        public class OnViewComponentBeforeViewExecuteEventData
+        {
+            public IProxyActionDescriptor ActionDescriptor { get; set; }
+
+            public IProxyViewComponentContext ViewComponentContext { get; set; }
+
+            public IProxyView View { get; set; }
+        }
+
+        public OnViewComponentBeforeViewExecuteEventData ViewComponentBeforeViewExecute { get; set; }
+
+        [DiagnosticName("Microsoft.AspNet.Mvc.ViewComponentBeforeViewExecute")]
+        public virtual void OnViewComponentBeforeViewExecute(
+            IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext, IProxyView view)
+        {
+            ViewComponentBeforeViewExecute = new OnViewComponentBeforeViewExecuteEventData()
+            {
+                ActionDescriptor = actionDescriptor,
+                ViewComponentContext = viewComponentContext,
+                View = view
+            };
+        }
+
+        public class OnViewComponentAfterViewExecuteEventData
+        {
+            public IProxyActionDescriptor ActionDescriptor { get; set; }
+
+            public IProxyViewComponentContext ViewComponentContext { get; set; }
+
+            public IProxyView View { get; set; }
+        }
+
+        public OnViewComponentAfterViewExecuteEventData ViewComponentAfterViewExecute { get; set; }
+
+        [DiagnosticName("Microsoft.AspNet.Mvc.ViewComponentAfterViewExecute")]
+        public virtual void OnViewComponentAfterViewExecute(
+            IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext, IProxyView view)
+        {
+            ViewComponentAfterViewExecute = new OnViewComponentAfterViewExecuteEventData()
+            {
+                ActionDescriptor = actionDescriptor,
+                ViewComponentContext = viewComponentContext,
+                View = view
+            };
+        }
     }
 }
