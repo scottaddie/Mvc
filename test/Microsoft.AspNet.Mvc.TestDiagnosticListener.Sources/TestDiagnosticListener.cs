@@ -223,33 +223,41 @@ namespace Microsoft.AspNet.Mvc
 
         public class OnBeforeViewComponentEventData
         {
+            public IProxyActionDescriptor ActionDescriptor { get; set; }
+
             public IProxyViewComponentContext ViewComponentContext { get; set; }
         }
 
         public OnBeforeViewComponentEventData BeforeViewComponent { get; set; }
 
         [TelemetryName("Microsoft.AspNet.Mvc.BeforeViewComponent")]
-        public virtual void OnBeforeViewComponent(IProxyViewComponentContext viewComponentContext)
+        public virtual void OnBeforeViewComponent(
+            IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext)
         {
             BeforeViewComponent = new OnBeforeViewComponentEventData()
             {
-                ViewComponentContext = viewComponentContext,
+                ActionDescriptor = actionDescriptor,
+                ViewComponentContext = viewComponentContext
             };
         }
 
         public class OnAfterViewComponentEventData
         {
+            public IProxyActionDescriptor ActionDescriptor { get; set; }
+
             public IProxyViewComponentContext ViewComponentContext { get; set; }
         }
 
         public OnAfterViewComponentEventData AfterViewComponent { get; set; }
 
         [TelemetryName("Microsoft.AspNet.Mvc.AfterViewComponent")]
-        public virtual void OnAfterViewComponent(IProxyViewComponentContext viewComponentContext)
+        public virtual void OnAfterViewComponent(
+            IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext)
         {
             AfterViewComponent = new OnAfterViewComponentEventData()
             {
-                ViewComponentContext = viewComponentContext,
+                ActionDescriptor = actionDescriptor,
+                ViewComponentContext = viewComponentContext
             };
         }
     }

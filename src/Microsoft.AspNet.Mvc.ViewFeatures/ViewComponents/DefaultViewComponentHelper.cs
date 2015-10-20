@@ -216,11 +216,23 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(descriptor.Type.FullName));
             }
 
-            WriteTelemetryIfEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent", context);
+#pragma warning disable 0618
+            if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
+            {
+                _telemetry.WriteTelemetry(
+                    "Microsoft.AspNet.Mvc.BeforeViewComponent",
+                    new { actionDescriptor = _viewContext.ActionDescriptor, viewComponentContext = context });
+            }
 
             var result = invoker.InvokeAsync(context);
 
-            WriteTelemetryIfEnabled("Microsoft.AspNet.Mvc.AfterViewComponent", context);
+            if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
+            {
+                _telemetry.WriteTelemetry(
+                    "Microsoft.AspNet.Mvc.AfterViewComponent",
+                    new { actionDescriptor = _viewContext.ActionDescriptor, viewComponentContext = context });
+            }
+#pragma warning restore 0618
 
             return result;
         }
@@ -249,21 +261,21 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(descriptor.Type.FullName));
             }
 
-            WriteTelemetryIfEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent", context);
+#pragma warning disable 0618
+            if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
+            {
+                _telemetry.WriteTelemetry(
+                    "Microsoft.AspNet.Mvc.BeforeViewComponent",
+                    new { actionDescriptor = _viewContext.ActionDescriptor, viewComponentContext = context });
+            }
 
             invoker.Invoke(context);
 
-            WriteTelemetryIfEnabled("Microsoft.AspNet.Mvc.AfterViewComponent", context);
-        }
-
-        private void WriteTelemetryIfEnabled(string telemetryName, ViewComponentContext context)
-        {
-#pragma warning disable 0618
-            if (_telemetry.IsEnabled(telemetryName))
+            if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
             {
                 _telemetry.WriteTelemetry(
-                    telemetryName,
-                    new { viewComponentContext = context });
+                    "Microsoft.AspNet.Mvc.AfterViewComponent",
+                    new { actionDescriptor = _viewContext.ActionDescriptor, viewComponentContext = context });
             }
 #pragma warning restore 0618
         }

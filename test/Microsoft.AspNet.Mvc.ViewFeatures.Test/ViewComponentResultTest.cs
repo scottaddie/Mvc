@@ -180,7 +180,9 @@ namespace Microsoft.AspNet.Mvc
             var body = ReadBody(actionContext.HttpContext.Response);
             Assert.Equal("Hello, World!", body);
 
+            Assert.NotNull(adapter.BeforeViewComponent?.ActionDescriptor);
             Assert.NotNull(adapter.BeforeViewComponent?.ViewComponentContext);
+            Assert.NotNull(adapter.AfterViewComponent?.ActionDescriptor);
             Assert.NotNull(adapter.AfterViewComponent?.ViewComponentContext);
         }
 #pragma warning restore 0618
