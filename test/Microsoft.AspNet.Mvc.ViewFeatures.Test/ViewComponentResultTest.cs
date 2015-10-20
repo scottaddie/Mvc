@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -77,7 +77,7 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var expected = $"A view component named '{typeof(TextViewComponent).FullName}' could not be found.";
 
-            var services = CreateServices(telemetryListener: null);
+            var services = CreateServices(diagnosticListener: null);
             services.AddSingleton<IViewComponentSelector>();
 
             var actionContext = CreateActionContext();
@@ -152,7 +152,7 @@ namespace Microsoft.AspNet.Mvc
 
 #pragma warning disable 0618
         [Fact]
-        public async Task ExecuteResultAsync_ExecutesViewComponent_AndWritesTelemetry()
+        public async Task ExecuteResultAsync_ExecutesViewComponent_AndWritesDiagnosticSource()
         {
             // Arrange
             var descriptor = new ViewComponentDescriptor()
@@ -162,7 +162,7 @@ namespace Microsoft.AspNet.Mvc
                 Type = typeof(TextViewComponent),
             };
 
-            var adapter = new TestTelemetryListener();
+            var adapter = new TestDiagnosticListener();
 
             var actionContext = CreateActionContext(adapter, descriptor);
 
@@ -426,16 +426,16 @@ namespace Microsoft.AspNet.Mvc
         }
 
 #pragma warning disable 0618
-        private IServiceCollection CreateServices(object telemetryListener, params ViewComponentDescriptor[] descriptors)
+        private IServiceCollection CreateServices(object diagnosticListener, params ViewComponentDescriptor[] descriptors)
         {
-            var telemetry = new TelemetryListener("Microsoft.AspNet");
-            if (telemetryListener != null)
+            var diagnosticSource = new DiagnosticListener("Microsoft.AspNet");
+            if (diagnosticListener != null)
             {
-                telemetry.SubscribeWithAdapter(telemetryListener);
+                diagnosticSource.SubscribeWithAdapter(diagnosticListener);
             }
 
             var services = new ServiceCollection();
-            services.AddInstance<TelemetrySource>(telemetry);
+            services.AddInstance<DiagnosticSource>(diagnosticSource);
             services.AddSingleton<IOptions<MvcViewOptions>, TestOptionsManager<MvcViewOptions>>();
             services.AddTransient<IViewComponentHelper, DefaultViewComponentHelper>();
             services.AddSingleton<IViewComponentSelector, DefaultViewComponentSelector>();
@@ -451,9 +451,9 @@ namespace Microsoft.AspNet.Mvc
         }
 #pragma warning restore 0618
 
-        private HttpContext CreateHttpContext(object telemetryListener, params ViewComponentDescriptor[] descriptors)
+        private HttpContext CreateHttpContext(object diagnosticListener, params ViewComponentDescriptor[] descriptors)
         {
-            var services = CreateServices(telemetryListener, descriptors);
+            var services = CreateServices(diagnosticListener, descriptors);
 
             var httpContext = new DefaultHttpContext();
             httpContext.Response.Body = new MemoryStream();
@@ -461,9 +461,9 @@ namespace Microsoft.AspNet.Mvc
 
             return httpContext;
         }
-        private ActionContext CreateActionContext(object telemetryListener, params ViewComponentDescriptor[] descriptors)
+        private ActionContext CreateActionContext(object diagnosticListener, params ViewComponentDescriptor[] descriptors)
         {
-            return new ActionContext(CreateHttpContext(telemetryListener, descriptors), new RouteData(), new ActionDescriptor());
+            return new ActionContext(CreateHttpContext(diagnosticListener, descriptors), new RouteData(), new ActionDescriptor());
         }
 
         private ActionContext CreateActionContext(params ViewComponentDescriptor[] descriptors)

@@ -230,7 +230,7 @@ namespace Microsoft.AspNet.Mvc
 
         public OnBeforeViewComponentEventData BeforeViewComponent { get; set; }
 
-        [TelemetryName("Microsoft.AspNet.Mvc.BeforeViewComponent")]
+        [DiagnosticName("Microsoft.AspNet.Mvc.BeforeViewComponent")]
         public virtual void OnBeforeViewComponent(
             IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext)
         {
@@ -250,7 +250,7 @@ namespace Microsoft.AspNet.Mvc
 
         public OnAfterViewComponentEventData AfterViewComponent { get; set; }
 
-        [TelemetryName("Microsoft.AspNet.Mvc.AfterViewComponent")]
+        [DiagnosticName("Microsoft.AspNet.Mvc.AfterViewComponent")]
         public virtual void OnAfterViewComponent(
             IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext)
         {
