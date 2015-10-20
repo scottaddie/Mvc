@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.Extensions.WebEncoders;
 
@@ -15,7 +16,6 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private readonly IHtmlEncoder _htmlEncoder;
         private readonly IRazorPageActivator _pageActivator;
-        private readonly IViewStartProvider _viewStartProvider;
 
         /// <summary>
         /// Initializes a new instance of RazorViewFactory
@@ -25,11 +25,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// pages</param>
         public RazorViewFactory(
             IRazorPageActivator pageActivator,
-            IViewStartProvider viewStartProvider,
             IHtmlEncoder htmlEncoder)
         {
             _pageActivator = pageActivator;
-            _viewStartProvider = viewStartProvider;
             _htmlEncoder = htmlEncoder;
         }
 
@@ -37,6 +35,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public IView GetView(
             IRazorViewEngine viewEngine,
             IRazorPage page,
+            IReadOnlyList<IRazorPage> viewStartPages,
             bool isPartial)
         {
             if (viewEngine == null)
@@ -52,7 +51,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var razorView = new RazorView(
                 viewEngine,
                 _pageActivator,
-                _viewStartProvider,
+                viewStartPages,
                 page,
                 _htmlEncoder,
                 isPartial);

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
@@ -54,21 +55,22 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 throw new ArgumentNullException(nameof(precompiledViews));
             }
 
+            var expirationTokens = new IChangeToken[0];
             foreach (var item in precompiledViews)
             {
-                var cacheEntry = new CompilerCacheResult(CompilationResult.Successful(item.Value));
+                var cacheEntry = new CompilerCacheResult(CompilationResult.Successful(item.Value), expirationTokens);
                 _cache.Set(GetNormalizedPath(item.Key), cacheEntry);
             }
         }
 
         /// <inheritdoc />
         public CompilerCacheResult GetOrAdd(
-            string relativePath,
+            RelativeFileInfo relativeFileInfo,
             Func<RelativeFileInfo, CompilationResult> compile)
         {
-            if (relativePath == null)
+            if (relativeFileInfo == null)
             {
-                throw new ArgumentNullException(nameof(relativePath));
+                throw new ArgumentNullException(nameof(relativeFileInfo));
             }
 
             if (compile == null)
@@ -76,6 +78,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 throw new ArgumentNullException(nameof(compile));
             }
 
+            
+            var relativePath = relativeFileInfo.RelativePath;
             CompilerCacheResult cacheResult;
             // Attempt to lookup the cache entry using the passed in path. This will succeed if the path is already
             // normalized and a cache entry exists.
@@ -95,34 +99,14 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             string normalizedPath,
             Func<RelativeFileInfo, CompilationResult> compile)
         {
-            CompilerCacheResult cacheResult;
             var fileInfo = _fileProvider.GetFileInfo(normalizedPath);
             MemoryCacheEntryOptions cacheEntryOptions;
-            CompilerCacheResult cacheResultToCache;
-            if (!fileInfo.Exists)
-            {
-                cacheResultToCache = CompilerCacheResult.FileNotFound;
-                cacheResult = CompilerCacheResult.FileNotFound;
-
-                cacheEntryOptions = new MemoryCacheEntryOptions();
-                cacheEntryOptions.AddExpirationToken(_fileProvider.Watch(normalizedPath));
-            }
-            else
-            {
-                var relativeFileInfo = new RelativeFileInfo(fileInfo, normalizedPath);
-                var compilationResult = compile(relativeFileInfo).EnsureSuccessful();
-                cacheEntryOptions = GetMemoryCacheEntryOptions(normalizedPath);
-
-                // By default the CompilationResult returned by IRoslynCompiler is an instance of
-                // UncachedCompilationResult. This type has the generated code as a string property and do not want
-                // to cache it. We'll instead cache the unwrapped result.
-                cacheResultToCache = new CompilerCacheResult(
-                    CompilationResult.Successful(compilationResult.CompiledType));
-                cacheResult = new CompilerCacheResult(compilationResult);
-            }
-
-            _cache.Set(normalizedPath, cacheResultToCache, cacheEntryOptions);
-            return cacheResult;
+            
+            var relativeFileInfo = new RelativeFileInfo(fileInfo, normalizedPath);
+            var compilationResult = compile(relativeFileInfo).EnsureSuccessful();
+            cacheEntryOptions = GetMemoryCacheEntryOptions(normalizedPath);
+            var cacheResult = new CompilerCacheResult(compilationResult, cacheEntryOptions.ExpirationTokens);
+            return _cache.Set<CompilerCacheResult>(normalizedPath, cacheResult, cacheEntryOptions);
         }
 
         private MemoryCacheEntryOptions GetMemoryCacheEntryOptions(string relativePath)

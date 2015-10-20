@@ -6,9 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using Microsoft.AspNet.FileProviders;
+using Microsoft.AspNet.Mvc.Razor.Compilation;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -22,8 +26,10 @@ namespace Microsoft.AspNet.Mvc.Razor
     public class RazorViewEngine : IRazorViewEngine
     {
         private const string ViewExtension = ".cshtml";
-        internal const string ControllerKey = "controller";
-        internal const string AreaKey = "area";
+        private const string ControllerKey = "controller";
+        private const string AreaKey = "area";
+        private static readonly ViewLocationCacheItem[] EmptyViewStartLocationCacheItems =
+            new ViewLocationCacheItem[0];
 
         private static readonly IEnumerable<string> _viewLocationFormats = new[]
         {
@@ -40,23 +46,34 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private readonly IRazorPageFactory _pageFactory;
         private readonly IRazorViewFactory _viewFactory;
+        private readonly ICompilerCacheProvider _compilerCacheProvider;
         private readonly IList<IViewLocationExpander> _viewLocationExpanders;
-        private readonly IViewLocationCache _viewLocationCache;
+        private readonly IFileProvider _fileProvider;
+        /// <remarks>
+        /// This delegate holds on to an instance of <see cref="IRazorCompilationService"/>.
+        /// </remarks>
+        private readonly Func<RelativeFileInfo, CompilationResult> _compileDelegate;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RazorViewEngine" /> class.
+        /// Initializes a new instance of the <see cref="RazorViewEngine" />.
         /// </summary>
-        /// <param name="pageFactory">The page factory used for creating <see cref="IRazorPage"/> instances.</param>
         public RazorViewEngine(
+            IRazorCompilationService compilationService,
+            ICompilerCacheProvider compilerCacheProvider,
             IRazorPageFactory pageFactory,
             IRazorViewFactory viewFactory,
-            IOptions<RazorViewEngineOptions> optionsAccessor,
-            IViewLocationCache viewLocationCache)
+            IOptions<RazorViewEngineOptions> optionsAccessor)
         {
             _pageFactory = pageFactory;
             _viewFactory = viewFactory;
             _viewLocationExpanders = optionsAccessor.Value.ViewLocationExpanders;
-            _viewLocationCache = viewLocationCache;
+            _fileProvider = optionsAccessor.Value.FileProvider;
+            ViewLookupCache = new MemoryCache(new MemoryCacheOptions
+            {
+                CompactOnMemoryPressure = false
+            });
+            _compilerCacheProvider = compilerCacheProvider;
+            _compileDelegate = compilationService.Compile;
         }
 
         /// <summary>
@@ -97,10 +114,18 @@ namespace Microsoft.AspNet.Mvc.Razor
             get { return _areaViewLocationFormats; }
         }
 
+        /// <summary>
+        /// A cache for results of view lookups.
+        /// </summary>
+        protected IMemoryCache ViewLookupCache { get; }
+
+        /// <summary>
+        /// The <see cref="ICompilerCache"/> used to cache view compilation artifacts.
+        /// </summary>
+        protected ICompilerCache CompilerCache => _compilerCacheProvider.Cache;
+
         /// <inheritdoc />
-        public ViewEngineResult FindView(
-            ActionContext context,
-            string viewName)
+        public ViewEngineResult FindView(ActionContext context, string viewName)
         {
             if (context == null)
             {
@@ -112,14 +137,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(viewName));
             }
 
-            var pageResult = GetRazorPageResult(context, viewName, isPartial: false);
-            return CreateViewEngineResult(pageResult, _viewFactory, isPartial: false);
+            var pageResult = GetViewLocationCacheResult(context, viewName, isPartial: false);
+            return CreateViewEngineResult(pageResult, viewName, isPartial: false);
         }
 
         /// <inheritdoc />
-        public ViewEngineResult FindPartialView(
-            ActionContext context,
-            string partialViewName)
+        public ViewEngineResult FindPartialView(ActionContext context, string partialViewName)
         {
             if (context == null)
             {
@@ -131,14 +154,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(partialViewName));
             }
 
-            var pageResult = GetRazorPageResult(context, partialViewName, isPartial: true);
-            return CreateViewEngineResult(pageResult, _viewFactory, isPartial: true);
+            var pageResult = GetViewLocationCacheResult(context, partialViewName, isPartial: true);
+            return CreateViewEngineResult(pageResult, partialViewName, isPartial: true);
         }
 
         /// <inheritdoc />
-        public RazorPageResult FindPage(
-            ActionContext context,
-            string pageName)
+        public RazorPageResult FindPage(ActionContext context, string pageName)
         {
             if (context == null)
             {
@@ -150,7 +171,16 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(pageName));
             }
 
-            return GetRazorPageResult(context, pageName, isPartial: true);
+            var cacheResult = GetViewLocationCacheResult(context, pageName, isPartial: true);
+            if (cacheResult.IsFoundResult)
+            {
+                var razorPage = _pageFactory.CreateInstance(cacheResult.View.Type, cacheResult.View.Location);
+                return new RazorPageResult(pageName, razorPage);
+            }
+            else
+            {
+                return new RazorPageResult(pageName, cacheResult.SearchedLocations);
+            }
         }
 
         /// <summary>
@@ -166,9 +196,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <see cref="Abstractions.ActionDescriptor.RouteConstraints"/> for traditional routes to get route values
         /// produces consistently cased results.
         /// </remarks>
-        public static string GetNormalizedRouteValue(
-            ActionContext context,
-            string key)
+        public static string GetNormalizedRouteValue(ActionContext context, string key)
         {
             if (context == null)
             {
@@ -228,7 +256,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             return stringRouteValue;
         }
 
-        private RazorPageResult GetRazorPageResult(
+        private ViewLocationCacheResult GetViewLocationCacheResult(
             ActionContext context,
             string pageName,
             bool isPartial)
@@ -241,13 +269,32 @@ namespace Microsoft.AspNet.Mvc.Razor
                     applicationRelativePath += ViewExtension;
                 }
 
-                var page = _pageFactory.CreateInstance(applicationRelativePath);
-                if (page != null)
+                var cacheKey = new ViewLocationCacheKey(
+                    applicationRelativePath,
+                    controllerName: null,
+                    areaName: null,
+                    isPartial: isPartial,
+                    values: null);
+
+                ViewLocationCacheResult cacheResult;
+                if (!ViewLookupCache.TryGetValue(cacheKey, out cacheResult))
                 {
-                    return new RazorPageResult(pageName, page);
+                    var expirationTokens = new HashSet<IChangeToken>();
+                    cacheResult = CreateCacheResult(cacheKey, expirationTokens, applicationRelativePath, isPartial);
+
+                    var cacheEntryOptions = new MemoryCacheEntryOptions();
+                    foreach (var expirationToken in expirationTokens)
+                    {
+                        cacheEntryOptions.AddExpirationToken(expirationToken);
+                    }
+
+                    cacheResult = ViewLookupCache.Set<ViewLocationCacheResult>(
+                        cacheKey,
+                        cacheResult,
+                        cacheEntryOptions);
                 }
 
-                return new RazorPageResult(pageName, new[] { pageName });
+                return cacheResult;
             }
             else
             {
@@ -255,105 +302,184 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-        private RazorPageResult LocatePageFromViewLocations(
-            ActionContext context,
+        private ViewLocationCacheResult LocatePageFromViewLocations(
+            ActionContext actionContext,
             string pageName,
             bool isPartial)
         {
-            // Initialize the dictionary for the typical case of having controller and action tokens.
-            var areaName = GetNormalizedRouteValue(context, AreaKey);
+            var controllerName = GetNormalizedRouteValue(actionContext, ControllerKey);
+            var areaName = GetNormalizedRouteValue(actionContext, AreaKey);
+            var expanderContext = new ViewLocationExpanderContext(
+                actionContext,
+                pageName,
+                controllerName,
+                areaName,
+                isPartial);
+            Dictionary<string, string> expanderValues = null;
 
-            // Only use the area view location formats if we have an area token.
-            var viewLocations = !string.IsNullOrEmpty(areaName) ? AreaViewLocationFormats :
-                                                                  ViewLocationFormats;
-
-            var expanderContext = new ViewLocationExpanderContext(context, pageName, isPartial);
             if (_viewLocationExpanders.Count > 0)
             {
-                expanderContext.Values = new Dictionary<string, string>(StringComparer.Ordinal);
+                expanderValues = new Dictionary<string, string>(StringComparer.Ordinal);
+                expanderContext.Values = expanderValues;
 
-                // 1. Populate values from viewLocationExpanders.
                 // Perf: Avoid allocations
-                for( var i = 0; i < _viewLocationExpanders.Count; i++)
+                for (var i = 0; i < _viewLocationExpanders.Count; i++)
                 {
                     _viewLocationExpanders[i].PopulateValues(expanderContext);
                 }
             }
 
-            // 2. With the values that we've accumumlated so far, check if we have a cached result.
-            IEnumerable<string> locationsToSearch = null;
-            var cachedResult = _viewLocationCache.Get(expanderContext);
-            if (!cachedResult.Equals(ViewLocationCacheResult.None))
-            {
-                if (cachedResult.IsFoundResult)
-                {
-                    var page = _pageFactory.CreateInstance(cachedResult.ViewLocation);
+            var cacheKey = new ViewLocationCacheKey(
+                expanderContext.ViewName,
+                expanderContext.ControllerName,
+                expanderContext.ViewName,
+                expanderContext.IsPartial,
+                expanderValues);
 
-                    if (page != null)
-                    {
-                        // 2a We have a cache entry where a view was previously found.
-                        return new RazorPageResult(pageName, page);
-                    }
-                }
-                else
-                {
-                    locationsToSearch = cachedResult.SearchedLocations;
-                }
+            ViewLocationCacheResult cacheResult;
+            if (!ViewLookupCache.TryGetValue(cacheKey, out cacheResult))
+            {
+                cacheResult = OnCacheMiss(expanderContext, cacheKey);
             }
 
-            if (locationsToSearch == null)
+            return cacheResult;
+        }
+
+        private ViewLocationCacheResult OnCacheMiss(
+            ViewLocationExpanderContext expanderContext,
+            ViewLocationCacheKey cacheKey)
+        {
+            // Only use the area view location formats if we have an area token.
+            var viewLocations = !string.IsNullOrEmpty(expanderContext.AreaName) ?
+                AreaViewLocationFormats : ViewLocationFormats;
+
+            foreach (var expander in _viewLocationExpanders)
             {
-                // 2b. We did not find a cached location or did not find a IRazorPage at the cached location.
-                // The cached value has expired and we need to look up the page.
-                foreach (var expander in _viewLocationExpanders)
-                {
-                    viewLocations = expander.ExpandViewLocations(expanderContext, viewLocations);
-                }
-
-                var controllerName = GetNormalizedRouteValue(context, ControllerKey);
-
-                locationsToSearch = viewLocations.Select(
-                    location => string.Format(
-                        CultureInfo.InvariantCulture,
-                        location,
-                        pageName,
-                        controllerName,
-                        areaName
-                    ));
+                viewLocations = expander.ExpandViewLocations(expanderContext, viewLocations);
             }
 
-            // 3. Use the expanded locations to look up a page.
+            var locationsToSearch = viewLocations.Select(
+                location => string.Format(
+                    CultureInfo.InvariantCulture,
+                    location,
+                    expanderContext.ViewName,
+                    expanderContext.ControllerName,
+                    expanderContext.AreaName
+                ));
+
+            ViewLocationCacheResult cacheResult = null;
             var searchedLocations = new List<string>();
+            var expirationTokens = new HashSet<IChangeToken>();
             foreach (var path in locationsToSearch)
             {
-                var page = _pageFactory.CreateInstance(path);
-                if (page != null)
+                cacheResult = CreateCacheResult(cacheKey, expirationTokens, path, expanderContext.IsPartial);
+                if (cacheResult != null)
                 {
-                    // 3a. We found a page. Cache the set of values that produced it and return a found result.
-                    _viewLocationCache.Set(expanderContext, new ViewLocationCacheResult(path, searchedLocations));
-                    return new RazorPageResult(pageName, page);
+                    break;
                 }
-
-                searchedLocations.Add(path);
             }
 
-            // 3b. We did not find a page for any of the paths.
-            _viewLocationCache.Set(expanderContext, new ViewLocationCacheResult(searchedLocations));
-            return new RazorPageResult(pageName, searchedLocations);
+            // No views were found at the specified location. Create a not found result.
+            if (cacheResult == null)
+            {
+                cacheResult = new ViewLocationCacheResult(searchedLocations);
+            }
+
+            var cacheEntryOptions = new MemoryCacheEntryOptions();
+            foreach (var expirationToken in expirationTokens)
+            {
+                cacheEntryOptions.AddExpirationToken(expirationToken);
+            }
+
+            return ViewLookupCache.Set<ViewLocationCacheResult>(cacheKey, cacheResult, cacheEntryOptions);
+        }
+
+        private ViewLocationCacheResult CreateCacheResult(
+            ViewLocationCacheKey cacheKey,
+            HashSet<IChangeToken> expirationTokens,
+            string relativePath,
+            bool isPartial)
+        {
+            if (relativePath.StartsWith("~/", StringComparison.Ordinal))
+            {
+                // For tilde slash paths, drop the leading ~ to make it work with the underlying IFileProvider.
+                relativePath = relativePath.Substring(1);
+            }
+
+            var page = GetRazorPageType(relativePath, expirationTokens);
+            if (page != null)
+            {
+                // Don't need to lookup _ViewStarts for partials.
+                var viewStartPages = isPartial ?
+                    EmptyViewStartLocationCacheItems :
+                    GetViewStartPages(relativePath, expirationTokens);
+
+                return new ViewLocationCacheResult(
+                    new ViewLocationCacheItem(page, relativePath),
+                    viewStartPages);
+            }
+
+            return null;
+        }
+
+        private Type GetRazorPageType(string relativePath, HashSet<IChangeToken> expirationTokens)
+        {
+            var file = _fileProvider.GetFileInfo(relativePath);
+            if (file.Exists)
+            {
+                var relativeFileInfo = new RelativeFileInfo(file, relativePath);
+                var cacheResult = CompilerCache.GetOrAdd(relativeFileInfo, _compileDelegate);
+                for (var i = 0; i < cacheResult.ExpirationTokens.Count; i++)
+                {
+                    expirationTokens.Add(cacheResult.ExpirationTokens[i]);
+                }
+
+                // The compiler cache does not cache failed compilations.
+                Debug.Assert(cacheResult.CompilationResult.CompiledType != null);
+                return cacheResult.CompilationResult.CompiledType;
+            }
+
+            expirationTokens.Add(_fileProvider.Watch(relativePath));
+            return null;
+        }
+
+        private IReadOnlyList<ViewLocationCacheItem> GetViewStartPages(
+            string path,
+            HashSet<IChangeToken> expirationTokens)
+        {
+            var viewStartPages = new List<ViewLocationCacheItem>();
+            foreach (var viewStartPath in ViewHierarchyUtility.GetViewStartLocations(path))
+            {
+                var type = GetRazorPageType(viewStartPath, expirationTokens);
+                if (type != null)
+                {
+                    viewStartPages.Add(new ViewLocationCacheItem(type, viewStartPath));
+                }
+            }
+
+            return viewStartPages;
         }
 
         private ViewEngineResult CreateViewEngineResult(
-            RazorPageResult result,
-            IRazorViewFactory razorViewFactory,
+            ViewLocationCacheResult result,
+            string viewName,
             bool isPartial)
         {
-            if (result.SearchedLocations != null)
+            if (!result.IsFoundResult)
             {
-                return ViewEngineResult.NotFound(result.Name, result.SearchedLocations);
+                return ViewEngineResult.NotFound(viewName, result.SearchedLocations);
             }
 
-            var view = razorViewFactory.GetView(this, result.Page, isPartial);
-            return ViewEngineResult.Found(result.Name, view);
+            var page = _pageFactory.CreateInstance(result.View.Type, result.View.Location);
+            var viewStarts = new IRazorPage[result.ViewStarts.Count];
+            for (var i = 0; i < viewStarts.Length; i++)
+            {
+                var viewStartItem = result.ViewStarts[i];
+                viewStarts[i] = _pageFactory.CreateInstance(viewStartItem.Type, viewStartItem.Location);
+            }
+
+            var view = _viewFactory.GetView(this, page, viewStarts, isPartial);
+            return ViewEngineResult.Found(viewName, view);
         }
 
         private static bool IsApplicationRelativePath(string name)

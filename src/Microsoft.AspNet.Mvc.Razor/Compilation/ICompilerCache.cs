@@ -14,11 +14,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// Get an existing compilation result, or create and add a new one if it is
         /// not available in the cache or is expired.
         /// </summary>
-        /// <param name="relativePath">Application relative path to the file.</param>
+        /// <param name="relativeFileInfo">Application relative path to the file.</param>
         /// <param name="compile">An delegate that will generate a compilation result.</param>
         /// <returns>A cached <see cref="CompilationResult"/>.</returns>
         CompilerCacheResult GetOrAdd(
-            string relativePath,
+            RelativeFileInfo relativeFileInfo,
             Func<RelativeFileInfo, CompilationResult> compile);
     }
 }

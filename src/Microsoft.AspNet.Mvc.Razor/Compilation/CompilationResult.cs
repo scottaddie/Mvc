@@ -26,11 +26,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         public Type CompiledType { get; protected set; }
 
         /// <summary>
-        /// Gets (or sets in derived types) the generated C# content that was compiled.
-        /// </summary>
-        public string CompiledContent { get; protected set; }
-
-        /// <summary>
         /// Gets the <see cref="CompilationFailure"/>s produced from parsing or compiling the Razor file.
         /// </summary>
         /// <remarks>This property is <c>null</c> when compilation succeeded. An empty sequence

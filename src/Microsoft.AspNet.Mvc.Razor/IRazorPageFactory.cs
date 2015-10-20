@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
@@ -9,10 +11,10 @@ namespace Microsoft.AspNet.Mvc.Razor
     public interface IRazorPageFactory
     {
         /// <summary>
-        /// Creates a <see cref="IRazorPage"/> for the specified path.
+        /// Creates a <see cref="Type"/> for the specified path.
         /// </summary>
         /// <param name="relativePath">The path to locate the page.</param>
         /// <returns>The IRazorPage instance if it exists, null otherwise.</returns>
-        IRazorPage CreateInstance(string relativePath);
+        IRazorPage CreateInstance(Type type, string relativePath);
     }
 }
