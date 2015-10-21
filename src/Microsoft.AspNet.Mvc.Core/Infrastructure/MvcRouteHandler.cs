@@ -8,6 +8,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Internal;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var actionDescriptor = await _actionSelector.SelectAsync(context);
             if (actionDescriptor == null)
             {
-                _logger.LogVerbose("No actions matched the current request.");
+                _logger.NoMatchingActions();
                 return;
             }
 
@@ -91,9 +92,9 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                         new { actionDescriptor, httpContext = context.HttpContext, routeData = context.RouteData });
                 }
 
-                using (_logger.BeginScope("ActionId: {ActionId}", actionDescriptor.Id))
+                using ( _logger.BeginActionScope(actionDescriptor.Id))
                 {
-                    _logger.LogVerbose("Executing action {ActionDisplayName}", actionDescriptor.DisplayName);
+                    _logger.ExecutingAction(actionDescriptor.DisplayName);
 
                     await InvokeActionAsync(context, actionDescriptor);
                     context.IsHandled = true;
