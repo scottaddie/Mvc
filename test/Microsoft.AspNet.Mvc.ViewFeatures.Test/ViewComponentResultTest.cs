@@ -355,8 +355,13 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
         }
 
-        [Fact]
-        public async Task ViewComponentResult_NoContentTypeSet_PreservesResponseContentType()
+        [Theory]
+        [InlineData("text/foo", "text/foo; charset=utf-8")]
+        [InlineData("text/foo; p1=p1-value", "text/foo; p1=p1-value; charset=utf-8")]
+        [InlineData("text/foo; p1=p1-value; charset=us-ascii", "text/foo; p1=p1-value; charset=us-ascii")]
+        public async Task ViewComponentResult_NoContentTypeSet_PreservesResponseContentType(
+            string responseContentType,
+            string expectedContentType)
         {
             // Arrange
             var descriptor = new ViewComponentDescriptor()
@@ -368,7 +373,6 @@ namespace Microsoft.AspNet.Mvc
 
             var actionContext = CreateActionContext(descriptor);
 
-            var expectedContentType = "application/x-will-not-be-overridden";
             actionContext.HttpContext.Response.ContentType = expectedContentType;
 
             var viewComponentResult = new ViewComponentResult()

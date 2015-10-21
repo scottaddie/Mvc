@@ -4,6 +4,7 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.OptionsModel;
 using Microsoft.Net.Http.Headers;
@@ -74,20 +75,10 @@ namespace Microsoft.AspNet.Mvc
 
             var response = context.HttpContext.Response;
 
-            var contentTypeHeader = ContentType;
-            if (contentTypeHeader == null)
-            {
-                contentTypeHeader = DefaultContentType;
-            }
-            else
-            {
-                if (contentTypeHeader.Encoding == null)
-                {
-                    // Do not modify the user supplied content type, so copy it instead
-                    contentTypeHeader = contentTypeHeader.Copy();
-                    contentTypeHeader.Encoding = Encoding.UTF8;
-                }
-            }
+            var contentTypeHeader = ResponseContentTypeHelper.GetContentType(
+                ContentType,
+                response.ContentType,
+                DefaultContentType);
 
             response.ContentType = contentTypeHeader.ToString();
 

@@ -41,18 +41,13 @@ namespace Microsoft.AspNet.Mvc
             }
 
             var response = context.HttpContext.Response;
-            var contentTypeHeader = ContentType;
 
-            if (contentTypeHeader != null && contentTypeHeader.Encoding == null)
-            {
-                // Do not modify the user supplied content type, so copy it instead
-                contentTypeHeader = contentTypeHeader.Copy();
-                contentTypeHeader.Encoding = Encoding.UTF8;
-            }
+            var contentTypeHeader = ResponseContentTypeHelper.GetContentType(
+                ContentType,
+                response.ContentType,
+                DefaultContentType);
 
-            response.ContentType = contentTypeHeader?.ToString()
-                ?? response.ContentType
-                ?? DefaultContentType.ToString();
+            response.ContentType = contentTypeHeader.ToString();
 
             if (StatusCode != null)
             {
@@ -64,7 +59,7 @@ namespace Microsoft.AspNet.Mvc
                 var bufferingFeature = response.HttpContext.Features.Get<IHttpBufferingFeature>();
                 bufferingFeature?.DisableResponseBuffering();
 
-                return response.WriteAsync(Content, contentTypeHeader?.Encoding ?? DefaultContentType.Encoding);
+                return response.WriteAsync(Content, contentTypeHeader.Encoding);
             }
 
             return TaskCache.CompletedTask;

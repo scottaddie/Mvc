@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Infrastructure;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.Extensions.OptionsModel;
@@ -92,8 +93,9 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         /// <param name="view">The <see cref="IView"/>.</param>
         /// <param name="viewData">The <see cref="ViewDataDictionary"/>.</param>
         /// <param name="tempData">The <see cref="ITempDataDictionary"/>.</param>
-        /// <param name="contentType">
-        /// The content-type header value to set in the response. If <c>null</c>, <see cref="DefaultContentType"/> will be used.
+        /// <param name="actionResultContentType">
+        /// The content-type header value to set in the response. If <c>null</c>,
+        /// <see cref="DefaultContentType"/> will be used.
         /// </param>
         /// <param name="statusCode">
         /// The HTTP status code to set in the response. May be <c>null</c>.
@@ -104,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             IView view,
             ViewDataDictionary viewData,
             ITempDataDictionary tempData,
-            MediaTypeHeaderValue contentType,
+            MediaTypeHeaderValue actionResultContentType,
             int? statusCode)
         {
             if (actionContext == null)
@@ -129,26 +131,19 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
             var response = actionContext.HttpContext.Response;
 
-            if (contentType != null && contentType.Encoding == null)
-            {
-                // Do not modify the user supplied content type, so copy it instead
-                contentType = contentType.Copy();
-                contentType.Encoding = Encoding.UTF8;
-            }
+            var resolvedContentType = ResponseContentTypeHelper.GetContentType(
+                actionResultContentType,
+                response.ContentType,
+                DefaultContentType);
 
-            // Priority list for setting content-type:
-            //      1. passed in contentType (likely set by the user on the result)
-            //      2. response.ContentType (likely set by the user in controller code)
-            //      3. ViewExecutor.DefaultContentType (sensible default)
-            response.ContentType = contentType?.ToString() ?? response.ContentType ?? DefaultContentType.ToString();
+            response.ContentType = resolvedContentType.ToString();
 
             if (statusCode != null)
             {
                 response.StatusCode = statusCode.Value;
             }
 
-            var encoding = contentType?.Encoding ?? DefaultContentType.Encoding;
-            using (var writer = WriterFactory.CreateWriter(response.Body, encoding))
+            using (var writer = WriterFactory.CreateWriter(response.Body, resolvedContentType.Encoding))
             {
                 var viewContext = new ViewContext(
                     actionContext,
@@ -157,7 +152,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                     tempData,
                     writer,
                     ViewOptions.HtmlHelperOptions);
-                
+
                 if (DiagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeView"))
                 {
                     DiagnosticSource.Write(
@@ -166,7 +161,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 }
 
                 await view.RenderAsync(viewContext);
-                
+
                 if (DiagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterView"))
                 {
                     DiagnosticSource.Write(

@@ -87,6 +87,32 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("text/json; charset=us-ascii", context.Response.ContentType);
         }
 
+        [Theory]
+        [InlineData("text/foo", "text/foo; charset=utf-8")]
+        [InlineData("text/foo; p1=p1-value", "text/foo; p1=p1-value; charset=utf-8")]
+        [InlineData("text/foo; p1=p1-value; charset=us-ascii", "text/foo; p1=p1-value; charset=us-ascii")]
+        public async Task ExecuteResultAsync_NoResultContentTypeSet_UsesResponseContentType(
+            string responseContentType,
+            string expectedContentType)
+        {
+            // Arrange
+            var expected = _abcdUTF8Bytes;
+
+            var context = GetHttpContext();
+            context.Response.ContentType = responseContentType;
+            var actionContext = new ActionContext(context, new RouteData(), new ActionDescriptor());
+
+            var result = new JsonResult(new { foo = "abcd" });
+
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+            var written = GetWrittenBytes(context);
+
+            // Assert
+            Assert.Equal(expected, written);
+            Assert.Equal(expectedContentType, context.Response.ContentType);
+        }
+
         private static List<byte> AbcdIndentedUTF8Bytes
         {
             get
