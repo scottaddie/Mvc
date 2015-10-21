@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc.Internal
@@ -12,6 +14,17 @@ namespace Microsoft.AspNet.Mvc.Internal
             string httpResponseContentType,
             MediaTypeHeaderValue defaultContentType)
         {
+            if (defaultContentType == null)
+            {
+                throw new ArgumentNullException(nameof(defaultContentType));
+            }
+
+            if (defaultContentType.Encoding == null)
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatDefaultContentTypeEncoding(defaultContentType.ToString()));
+            }
+
             // 1. User sets the ContentType property on the action result
             if (actionResultContentType != null)
             {

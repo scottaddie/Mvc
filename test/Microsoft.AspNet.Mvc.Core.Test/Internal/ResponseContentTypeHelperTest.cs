@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -92,7 +93,7 @@ namespace Microsoft.AspNet.Mvc.Internal
         public void DoesNotModify_UserProvidedContentTypeObject()
         {
             // Arrange
-            var defaultContentType = MediaTypeHeaderValue.Parse("text/blah");
+            var defaultContentType = MediaTypeHeaderValue.Parse("text/blah; charset=utf-8");
             var contentType = MediaTypeHeaderValue.Parse("text/foo");
 
             // Act
@@ -102,7 +103,98 @@ namespace Microsoft.AspNet.Mvc.Internal
                 defaultContentType: defaultContentType);
 
             // Assert
+            Assert.Equal("text/foo; charset=utf-8", actualContentType.ToString());
             Assert.NotSame(contentType, actualContentType);
+        }
+
+        public static TheoryData<MediaTypeHeaderValue, string> ThrowsExceptionOnNullDefaultContentTypeData
+        {
+            get
+            {
+                return new TheoryData<MediaTypeHeaderValue, string>
+                {
+                    {
+                        null,
+                        null
+                    },
+                    {
+                        null,
+                        "text/default"
+                    },
+                    {
+                        new MediaTypeHeaderValue("text/default"),
+                        null
+                    },
+                    {
+                        new MediaTypeHeaderValue("text/default"),
+                        "text/default"
+                    }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ThrowsExceptionOnNullDefaultContentTypeData))]
+        public void ThrowsExceptionOn_NullDefaultContentType(
+            MediaTypeHeaderValue actionResultContentType,
+            string httpResponseContentType)
+        {
+            // Arrange, Act & Assert
+            var exception = Assert.Throws<ArgumentNullException>(() =>
+            {
+                ResponseContentTypeHelper.GetContentType(
+                    actionResultContentType,
+                    httpResponseContentType,
+                    defaultContentType: null);
+            });
+        }
+
+        public static TheoryData<MediaTypeHeaderValue, string> ThrowsExceptionOnNullDefaultContentTypeEncodingData
+        {
+            get
+            {
+                return new TheoryData<MediaTypeHeaderValue, string>
+                {
+                    {
+                        null,
+                        null
+                    },
+                    {
+                        null,
+                        "text/default"
+                    },
+                    {
+                        new MediaTypeHeaderValue("text/default"),
+                        null
+                    },
+                    {
+                        new MediaTypeHeaderValue("text/default"),
+                        "text/default"
+                    }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ThrowsExceptionOnNullDefaultContentTypeEncodingData))]
+        public void ThrowsExceptionOn_NullDefaultContentTypeEncoding(
+            MediaTypeHeaderValue actionResultContentType,
+            string httpResponseContentType)
+        {
+            // Arrange
+            var defaultContentType = MediaTypeHeaderValue.Parse("text/bar; p1=p1-value");
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                ResponseContentTypeHelper.GetContentType(
+                    actionResultContentType,
+                    httpResponseContentType,
+                    defaultContentType);
+            });
+            Assert.Equal(
+                $"The default content type '{defaultContentType.ToString()}' must have an encoding.",
+                exception.Message);
         }
     }
 }

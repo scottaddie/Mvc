@@ -319,4 +319,7 @@
     <value>Path '{0}' was not rooted.</value>
     <comment>{0} is the path which wasn't rooted</comment>
   </data>
+  <data name="DefaultContentTypeEncoding" xml:space="preserve">
+    <value>The default content type '{0}' must have an encoding.</value>
+  </data>
 </root>
