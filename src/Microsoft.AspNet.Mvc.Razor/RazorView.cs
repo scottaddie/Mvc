@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// Default implementation for <see cref="IView"/> that executes one or more <see cref="IRazorPage"/>
-    /// as parts of its exeuction.
+    /// as parts of its execution.
     /// </summary>
     public class RazorView : IView
     {
@@ -162,10 +163,31 @@ namespace Microsoft.AspNet.Mvc.Razor
                 foreach (var viewStart in viewStarts)
                 {
                     context.ExecutingFilePath = viewStart.Path;
+
                     // Copy the layout value from the previous view start (if any) to the current.
                     viewStart.Layout = layout;
+
                     await RenderPageCoreAsync(viewStart, context);
+
                     layout = viewStart.Layout;
+                    if (!string.IsNullOrEmpty(layout) && !IsApplicationRelativePath(layout) && IsRelativePath(layout))
+                    {
+                        // Fix up relative layout to be app-relative. Interpret layout relative to this view start.
+                        var path = System.IO.Path.GetDirectoryName(viewStart.Path);
+                        if (string.IsNullOrEmpty(path))
+                        {
+                            layout = "~/" + layout;
+                        }
+                        else if (path.EndsWith("/", StringComparison.Ordinal) ||
+                            path.EndsWith("\\", StringComparison.Ordinal))
+                        {
+                            layout = path + layout;
+                        }
+                        else
+                        {
+                            layout = path + "/" + layout;
+                        }
+                    }
                 }
             }
             finally
@@ -177,9 +199,21 @@ namespace Microsoft.AspNet.Mvc.Razor
             RazorPage.Layout = layout;
         }
 
+        private static bool IsApplicationRelativePath(string name)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(name));
+            return name[0] == '~' || name[0] == '/';
+        }
+
+        private static bool IsRelativePath(string name)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(name));
+            return name.EndsWith(RazorViewEngine.ViewExtension, StringComparison.OrdinalIgnoreCase);
+        }
+
         private async Task RenderLayoutAsync(
             ViewContext context,
-                                             IBufferedTextWriter bodyWriter)
+            IBufferedTextWriter bodyWriter)
         {
             // A layout page can specify another layout page. We'll need to continue
             // looking for layout pages until they're no longer specified.

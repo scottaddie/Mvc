@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.Extensions.OptionsModel;
@@ -21,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </remarks>
     public class RazorViewEngine : IRazorViewEngine
     {
-        private const string ViewExtension = ".cshtml";
+        internal const string ViewExtension = ".cshtml";
         internal const string ControllerKey = "controller";
         internal const string AreaKey = "area";
 
@@ -233,14 +235,43 @@ namespace Microsoft.AspNet.Mvc.Razor
             string pageName,
             bool isPartial)
         {
-            if (IsApplicationRelativePath(pageName))
+            var applicationRelativePath = pageName;
+            if (!IsApplicationRelativePath(applicationRelativePath) && IsRelativePath(applicationRelativePath))
             {
-                var applicationRelativePath = pageName;
-                if (!pageName.EndsWith(ViewExtension, StringComparison.OrdinalIgnoreCase))
+                // Given a relative path that is not yet app-relative.
+                // Interpret given path relative to currently-executing view, if any.
+                var executingPath = (context as ViewContext)?.ExecutingFilePath;
+                if (!string.IsNullOrEmpty(executingPath))
                 {
-                    applicationRelativePath += ViewExtension;
+                    executingPath = Path.GetDirectoryName(executingPath);
                 }
 
+                if (string.IsNullOrEmpty(executingPath))
+                {
+                    // Not yet executing a view or current view is in app root. Start in app root (~/).
+
+                    // **Reviewers**: Agree w/ this chosen default location for the "not yet executing a view" case?
+                    // Other options include ~/Views, ~/Views/{controller} or ~/Areas/{area}/Views/{controller} but
+                    // all get confusing with view components and searching already finds files in those folders.
+                    applicationRelativePath = "~/" + applicationRelativePath;
+                }
+                else if (executingPath.EndsWith("/", StringComparison.Ordinal) ||
+                    executingPath.EndsWith("\\", StringComparison.Ordinal))
+                {
+                    applicationRelativePath = executingPath + applicationRelativePath;
+                }
+                else
+                {
+                    applicationRelativePath = executingPath + "/" + applicationRelativePath;
+                }
+            }
+
+            if (IsApplicationRelativePath(applicationRelativePath))
+            {
+                // **Reviewers**: Removed code converted ~/Views/Folder/View to ~/View/Folder/View.cshtml. Discussed w/
+                // Eilon and we agreed this doesn't make any sense. A user wouldn't type a "fully-qualified path" w/o
+                // the extension. No similar code exists in MVC 5. Besides that, why not let user specify an
+                // extension that isn't ".cshtml"?
                 var page = _pageFactory.CreateInstance(applicationRelativePath);
                 if (page != null)
                 {
@@ -360,6 +391,17 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
             return name[0] == '~' || name[0] == '/';
+        }
+
+        private static bool IsRelativePath(string name)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(name));
+
+            // **Reviewers**: Though ./ViewName looks like a relative path, checking for '/' leads to problems with
+            // view components. They name the view Components/{component}/{view} and expect that to be resolved using
+            // ViewLocationFormats. Users can do the same thing from a controller e.g. View("folder/view") and view
+            // will be looked -- found under {controller}/folder or Shared/folder.
+            return name.EndsWith(ViewExtension, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
