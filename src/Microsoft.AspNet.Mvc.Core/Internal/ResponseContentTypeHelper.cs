@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.Internal
             if (defaultContentType.Encoding == null)
             {
                 throw new InvalidOperationException(
-                    Resources.FormatDefaultContentTypeEncoding(defaultContentType.ToString()));
+                    Resources.FormatDefaultContentTypeMustHaveEncoding(defaultContentType.ToString()));
             }
 
             // 1. User sets the ContentType property on the action result

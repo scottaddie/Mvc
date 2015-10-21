@@ -1037,17 +1037,17 @@ namespace Microsoft.AspNet.Mvc.Core
         /// <summary>
         /// The default content type '{0}' must have an encoding.
         /// </summary>
-        internal static string DefaultContentTypeEncoding
+        internal static string DefaultContentTypeMustHaveEncoding
         {
-            get { return GetString("DefaultContentTypeEncoding"); }
+            get { return GetString("DefaultContentTypeMustHaveEncoding"); }
         }
 
         /// <summary>
         /// The default content type '{0}' must have an encoding.
         /// </summary>
-        internal static string FormatDefaultContentTypeEncoding(object p0)
+        internal static string FormatDefaultContentTypeMustHaveEncoding(object p0)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("DefaultContentTypeEncoding"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("DefaultContentTypeMustHaveEncoding"), p0);
         }
 
         private static string GetString(string name, params string[] formatterNames)
