@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
@@ -16,15 +15,12 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         private readonly IViewComponentDescriptorCollectionProvider _descriptorProvider;
         private readonly IViewComponentInvokerFactory _invokerFactory;
         private readonly IViewComponentSelector _selector;
-#pragma warning disable 0618
-        private readonly DiagnosticSource _diagnosticSource;
         private ViewContext _viewContext;
 
         public DefaultViewComponentHelper(
             IViewComponentDescriptorCollectionProvider descriptorProvider,
             IViewComponentSelector selector,
-            IViewComponentInvokerFactory invokerFactory,
-            DiagnosticSource telemetry)
+            IViewComponentInvokerFactory invokerFactory)
         {
             if (descriptorProvider == null)
             {
@@ -44,9 +40,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             _descriptorProvider = descriptorProvider;
             _selector = selector;
             _invokerFactory = invokerFactory;
-            _diagnosticSource = telemetry;
         }
-#pragma warning restore 0618
 
         public void Contextualize(ViewContext viewContext)
         {
@@ -216,25 +210,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(descriptor.Type.FullName));
             }
 
-#pragma warning disable 0618
-            if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
-            {
-                _diagnosticSource.Write(
-                    "Microsoft.AspNet.Mvc.BeforeViewComponent",
-                    new { actionDescriptor = _viewContext.ActionDescriptor, viewComponentContext = context });
-            }
-
-            var result = invoker.InvokeAsync(context);
-
-            if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
-            {
-                _diagnosticSource.Write(
-                    "Microsoft.AspNet.Mvc.AfterViewComponent",
-                    new { actionDescriptor = _viewContext.ActionDescriptor, viewComponentContext = context });
-            }
-#pragma warning restore 0618
-
-            return result;
+            return invoker.InvokeAsync(context);
         }
 
         private void InvokeCore(
@@ -261,23 +237,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(descriptor.Type.FullName));
             }
 
-#pragma warning disable 0618
-            if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
-            {
-                _diagnosticSource.Write(
-                    "Microsoft.AspNet.Mvc.BeforeViewComponent",
-                    new { actionDescriptor = _viewContext.ActionDescriptor, viewComponentContext = context });
-            }
-
             invoker.Invoke(context);
-
-            if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
-            {
-                _diagnosticSource.Write(
-                    "Microsoft.AspNet.Mvc.AfterViewComponent",
-                    new { actionDescriptor = _viewContext.ActionDescriptor, viewComponentContext = context });
-            }
-#pragma warning restore 0618
         }
     }
 }

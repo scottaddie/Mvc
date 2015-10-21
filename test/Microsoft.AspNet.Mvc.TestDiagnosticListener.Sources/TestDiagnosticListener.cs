@@ -232,7 +232,8 @@ namespace Microsoft.AspNet.Mvc
 
         [DiagnosticName("Microsoft.AspNet.Mvc.BeforeViewComponent")]
         public virtual void OnBeforeViewComponent(
-            IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext)
+            IProxyActionDescriptor actionDescriptor,
+            IProxyViewComponentContext viewComponentContext)
         {
             BeforeViewComponent = new OnBeforeViewComponentEventData()
             {
@@ -246,18 +247,23 @@ namespace Microsoft.AspNet.Mvc
             public IProxyActionDescriptor ActionDescriptor { get; set; }
 
             public IProxyViewComponentContext ViewComponentContext { get; set; }
+
+            public IProxyViewComponentResult ViewComponentResult { get; set; }
         }
 
         public OnAfterViewComponentEventData AfterViewComponent { get; set; }
 
         [DiagnosticName("Microsoft.AspNet.Mvc.AfterViewComponent")]
         public virtual void OnAfterViewComponent(
-            IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext)
+            IProxyActionDescriptor actionDescriptor,
+            IProxyViewComponentContext viewComponentContext,
+            IProxyViewComponentResult viewComponentResult)
         {
             AfterViewComponent = new OnAfterViewComponentEventData()
             {
                 ActionDescriptor = actionDescriptor,
-                ViewComponentContext = viewComponentContext
+                ViewComponentContext = viewComponentContext,
+                ViewComponentResult = viewComponentResult
             };
         }
 
@@ -274,7 +280,9 @@ namespace Microsoft.AspNet.Mvc
 
         [DiagnosticName("Microsoft.AspNet.Mvc.ViewComponentBeforeViewExecute")]
         public virtual void OnViewComponentBeforeViewExecute(
-            IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext, IProxyView view)
+            IProxyActionDescriptor actionDescriptor,
+            IProxyViewComponentContext viewComponentContext,
+            IProxyView view)
         {
             ViewComponentBeforeViewExecute = new OnViewComponentBeforeViewExecuteEventData()
             {
@@ -297,7 +305,9 @@ namespace Microsoft.AspNet.Mvc
 
         [DiagnosticName("Microsoft.AspNet.Mvc.ViewComponentAfterViewExecute")]
         public virtual void OnViewComponentAfterViewExecute(
-            IProxyActionDescriptor actionDescriptor, IProxyViewComponentContext viewComponentContext, IProxyView view)
+            IProxyActionDescriptor actionDescriptor,
+            IProxyViewComponentContext viewComponentContext,
+            IProxyView view)
         {
             ViewComponentAfterViewExecute = new OnViewComponentAfterViewExecuteEventData()
             {

@@ -150,7 +150,6 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal("Hello-Async, World!", body);
         }
 
-#pragma warning disable 0618
         [Fact]
         public async Task ExecuteResultAsync_ExecutesViewComponent_AndWritesDiagnosticSource()
         {
@@ -184,8 +183,8 @@ namespace Microsoft.AspNet.Mvc
             Assert.NotNull(adapter.BeforeViewComponent?.ViewComponentContext);
             Assert.NotNull(adapter.AfterViewComponent?.ActionDescriptor);
             Assert.NotNull(adapter.AfterViewComponent?.ViewComponentContext);
+            Assert.NotNull(adapter.AfterViewComponent?.ViewComponentResult);
         }
-#pragma warning restore 0618
 
         [Fact]
         public async Task ExecuteResultAsync_ExecutesViewComponent_ByShortName()
@@ -425,7 +424,6 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
         }
 
-#pragma warning disable 0618
         private IServiceCollection CreateServices(object diagnosticListener, params ViewComponentDescriptor[] descriptors)
         {
             var diagnosticSource = new DiagnosticListener("Microsoft.AspNet");
@@ -449,7 +447,6 @@ namespace Microsoft.AspNet.Mvc
 
             return services;
         }
-#pragma warning restore 0618
 
         private HttpContext CreateHttpContext(object diagnosticListener, params ViewComponentDescriptor[] descriptors)
         {

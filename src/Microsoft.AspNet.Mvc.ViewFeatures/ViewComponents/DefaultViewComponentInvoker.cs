@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
@@ -16,10 +17,12 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
     {
         private readonly ITypeActivatorCache _typeActivatorCache;
         private readonly IViewComponentActivator _viewComponentActivator;
+        private readonly DiagnosticSource _diagnosticSource;
 
         public DefaultViewComponentInvoker(
             ITypeActivatorCache typeActivatorCache,
-            IViewComponentActivator viewComponentActivator)
+            IViewComponentActivator viewComponentActivator,
+            DiagnosticSource diagnosticSource)
         {
             if (typeActivatorCache == null)
             {
@@ -31,8 +34,14 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 throw new ArgumentNullException(nameof(viewComponentActivator));
             }
 
+            if (diagnosticSource == null)
+            {
+                throw new ArgumentNullException(nameof(diagnosticSource));
+            }
+
             _typeActivatorCache = typeActivatorCache;
             _viewComponentActivator = viewComponentActivator;
+            _diagnosticSource = diagnosticSource;
         }
 
         public void Invoke(ViewComponentContext context)
@@ -51,7 +60,31 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_CannotFindMethod(ViewComponentMethodSelector.SyncMethodName));
             }
 
+            if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
+            {
+                _diagnosticSource.Write(
+                    "Microsoft.AspNet.Mvc.BeforeViewComponent",
+                    new
+                    {
+                        actionDescriptor = context.ViewContext.ActionDescriptor,
+                        viewComponentContext = context
+                    });
+            }
+
             var result = InvokeSyncCore(method, context);
+
+            if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
+            {
+                _diagnosticSource.Write(
+                    "Microsoft.AspNet.Mvc.AfterViewComponent",
+                    new
+                    {
+                        actionDescriptor = context.ViewContext.ActionDescriptor,
+                        viewComponentContext = context,
+                        viewComponentResult = result
+                    });
+            }
+
             result.Execute(context);
         }
 
@@ -82,12 +115,58 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 }
                 else
                 {
+                    if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
+                    {
+                        _diagnosticSource.Write(
+                            "Microsoft.AspNet.Mvc.BeforeViewComponent",
+                            new
+                            {
+                                actionDescriptor = context.ViewContext.ActionDescriptor,
+                                viewComponentContext = context
+                            });
+                    }
+
                     result = InvokeSyncCore(syncMethod, context);
+
+                    if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
+                    {
+                        _diagnosticSource.Write(
+                            "Microsoft.AspNet.Mvc.AfterViewComponent",
+                            new
+                            {
+                                actionDescriptor = context.ViewContext.ActionDescriptor,
+                                viewComponentContext = context,
+                                viewComponentResult = result
+                            });
+                    }
                 }
             }
             else
             {
+                if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
+                {
+                    _diagnosticSource.Write(
+                        "Microsoft.AspNet.Mvc.BeforeViewComponent",
+                        new
+                        {
+                            actionDescriptor = context.ViewContext.ActionDescriptor,
+                            viewComponentContext = context
+                        });
+                }
+
                 result = await InvokeAsyncCore(asyncMethod, context);
+
+                if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
+                {
+                    _diagnosticSource.Write(
+                        "Microsoft.AspNet.Mvc.AfterViewComponent",
+                        new
+                        {
+                            actionDescriptor = context.ViewContext.ActionDescriptor,
+                            viewComponentContext = context,
+                            viewComponentResult = result
+                        });
+                }
             }
 
             await result.ExecuteAsync(context);
