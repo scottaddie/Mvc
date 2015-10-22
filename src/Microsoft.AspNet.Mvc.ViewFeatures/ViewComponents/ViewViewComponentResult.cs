@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Diagnostics;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
@@ -123,31 +124,11 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     _diagnosticSource = context.ViewContext.HttpContext.RequestServices.GetRequiredService<DiagnosticSource>();
                 }
 
-                if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.ViewComponentBeforeViewExecute"))
-                {
-                    _diagnosticSource.Write(
-                        "Microsoft.AspNet.Mvc.ViewComponentBeforeViewExecute",
-                        new
-                        {
-                            actionDescriptor = context.ViewContext.ActionDescriptor,
-                            viewComponentContext = context,
-                            view = view
-                        });
-                }
+                _diagnosticSource.ViewComponentBeforeViewExecute(context.ViewContext.ActionDescriptor, context, view);
 
                 await view.RenderAsync(childViewContext);
 
-                if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.ViewComponentAfterViewExecute"))
-                {
-                    _diagnosticSource.Write(
-                        "Microsoft.AspNet.Mvc.ViewComponentAfterViewExecute",
-                        new
-                        {
-                            actionDescriptor = context.ViewContext.ActionDescriptor,
-                            viewComponentContext = context,
-                            view = view
-                        });
-                }
+                _diagnosticSource.ViewComponentAfterViewExecute(context.ViewContext.ActionDescriptor, context, view);
             }
         }
 

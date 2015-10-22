@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Diagnostics;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
@@ -158,21 +159,11 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                     writer,
                     ViewOptions.HtmlHelperOptions);
                 
-                if (DiagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeView"))
-                {
-                    DiagnosticSource.Write(
-                        "Microsoft.AspNet.Mvc.BeforeView",
-                        new { view = view, viewContext = viewContext, });
-                }
+                DiagnosticSource.BeforeView(view, viewContext);
 
                 await view.RenderAsync(viewContext);
-                
-                if (DiagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterView"))
-                {
-                    DiagnosticSource.Write(
-                        "Microsoft.AspNet.Mvc.AfterView",
-                        new { view = view, viewContext = viewContext, });
-                }
+
+                DiagnosticSource.AfterView(view, viewContext);
 
                 // Perf: Invoke FlushAsync to ensure any buffered content is asynchronously written to the underlying
                 // response asynchronously. In the absence of this line, the buffer gets synchronously written to the

@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Controllers;
+using Microsoft.AspNet.Mvc.Diagnostics;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
@@ -115,30 +116,11 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 }
                 else
                 {
-                    if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
-                    {
-                        _diagnosticSource.Write(
-                            "Microsoft.AspNet.Mvc.BeforeViewComponent",
-                            new
-                            {
-                                actionDescriptor = context.ViewContext.ActionDescriptor,
-                                viewComponentContext = context
-                            });
-                    }
+                    _diagnosticSource.BeforeViewComponent(context.ViewContext.ActionDescriptor, context);
 
                     result = InvokeSyncCore(syncMethod, context);
 
-                    if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
-                    {
-                        _diagnosticSource.Write(
-                            "Microsoft.AspNet.Mvc.AfterViewComponent",
-                            new
-                            {
-                                actionDescriptor = context.ViewContext.ActionDescriptor,
-                                viewComponentContext = context,
-                                viewComponentResult = result
-                            });
-                    }
+                    _diagnosticSource.AfterViewComponent(context.ViewContext.ActionDescriptor, context, result);
                 }
             }
             else
