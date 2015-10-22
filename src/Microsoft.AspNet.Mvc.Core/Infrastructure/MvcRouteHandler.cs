@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var actionDescriptor = await _actionSelector.SelectAsync(context);
             if (actionDescriptor == null)
             {
-                _logger.NoMatchingActions();
+                _logger.NoMatchingActions(context.HttpContext);
                 return;
             }
 
@@ -92,7 +92,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                         new { actionDescriptor, httpContext = context.HttpContext, routeData = context.RouteData });
                 }
 
-                using ( _logger.BeginActionScope(actionDescriptor.Id))
+                using (_logger.BeginActionScope(actionDescriptor.Id))
                 {
                     _logger.ExecutingAction(actionDescriptor.DisplayName);
 
