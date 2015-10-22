@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var actionDescriptor = await _actionSelector.SelectAsync(context);
             if (actionDescriptor == null)
             {
-                _logger.LogVerbose("No actions matched the current request.");
+                _logger.NoActionsMatched();
                 return;
             }
 
@@ -94,10 +94,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
                 using (_logger.ActionScope(actionDescriptor))
                 {
-                    _logger.LogVerbose("Executing action {ActionDisplayName}", actionDescriptor.DisplayName);
+                    _logger.ExecutingAction(actionDescriptor);
+
+                    var startTime = Environment.TickCount;
 
                     await InvokeActionAsync(context, actionDescriptor);
                     context.IsHandled = true;
+
+                    _logger.ExecutedAction(actionDescriptor, Environment.TickCount - startTime);
                 }
             }
             finally

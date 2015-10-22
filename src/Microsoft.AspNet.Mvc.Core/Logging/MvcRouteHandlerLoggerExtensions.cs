@@ -10,9 +10,40 @@ namespace Microsoft.AspNet.Mvc.Logging
 {
     internal static class MvcRouteHandlerLoggerExtensions
     {
+        private static Action<ILogger, string, Exception> _actionExecuting;
+        private static Action<ILogger, string, int, Exception> _actionExecuted;
+
+        static MvcRouteHandlerLoggerExtensions()
+        {
+            _actionExecuting = LoggerMessage.Define<string>(
+                LogLevel.Verbose,
+                1,
+                "Executing action {ActionName}");
+
+            _actionExecuted = LoggerMessage.Define<string, int>(
+                LogLevel.Information,
+                2,
+                "Executed action {ActionName} {ElapsedMilliseconds}ms elapsed");
+        }
+
         public static IDisposable ActionScope(this ILogger logger, ActionDescriptor action)
         {
             return logger.BeginScopeImpl(new ActionLogScope(action));
+        }
+
+        public static void ExecutingAction(this ILogger logger, ActionDescriptor action)
+        {
+            _actionExecuting(logger, action.DisplayName, null);
+        }
+
+        public static void ExecutedAction(this ILogger logger, ActionDescriptor action, int elapsedMilliseconds)
+        {
+            _actionExecuted(logger, action.DisplayName, elapsedMilliseconds, null);
+        }
+
+        public static void NoActionsMatched(this ILogger logger)
+        {
+            logger.LogVerbose(3, "No actions matched the current request");
         }
 
         private class ActionLogScope : ILogValues
