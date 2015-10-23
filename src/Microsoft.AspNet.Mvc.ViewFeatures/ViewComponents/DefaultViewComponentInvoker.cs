@@ -9,6 +9,7 @@ using Microsoft.AspNet.Mvc.Controllers;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNet.Mvc.ViewComponents
 {
@@ -16,10 +17,12 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
     {
         private readonly ITypeActivatorCache _typeActivatorCache;
         private readonly IViewComponentActivator _viewComponentActivator;
+        private readonly ILogger _logger;
 
         public DefaultViewComponentInvoker(
             ITypeActivatorCache typeActivatorCache,
-            IViewComponentActivator viewComponentActivator)
+            IViewComponentActivator viewComponentActivator,
+            ILogger logger)
         {
             if (typeActivatorCache == null)
             {
@@ -31,8 +34,14 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 throw new ArgumentNullException(nameof(viewComponentActivator));
             }
 
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             _typeActivatorCache = typeActivatorCache;
             _viewComponentActivator = viewComponentActivator;
+            _logger = logger;
         }
 
         public void Invoke(ViewComponentContext context)
