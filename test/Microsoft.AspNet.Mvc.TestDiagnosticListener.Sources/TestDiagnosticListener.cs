@@ -226,6 +226,8 @@ namespace Microsoft.AspNet.Mvc
             public IProxyActionDescriptor ActionDescriptor { get; set; }
 
             public IProxyViewComponentContext ViewComponentContext { get; set; }
+
+            public object ViewComponent { get; set; }
         }
 
         public OnBeforeViewComponentEventData BeforeViewComponent { get; set; }
@@ -233,12 +235,14 @@ namespace Microsoft.AspNet.Mvc
         [DiagnosticName("Microsoft.AspNet.Mvc.BeforeViewComponent")]
         public virtual void OnBeforeViewComponent(
             IProxyActionDescriptor actionDescriptor,
-            IProxyViewComponentContext viewComponentContext)
+            IProxyViewComponentContext viewComponentContext,
+            object viewComponent)
         {
             BeforeViewComponent = new OnBeforeViewComponentEventData()
             {
                 ActionDescriptor = actionDescriptor,
-                ViewComponentContext = viewComponentContext
+                ViewComponentContext = viewComponentContext,
+                ViewComponent = viewComponent
             };
         }
 
@@ -249,6 +253,8 @@ namespace Microsoft.AspNet.Mvc
             public IProxyViewComponentContext ViewComponentContext { get; set; }
 
             public IProxyViewComponentResult ViewComponentResult { get; set; }
+
+            public object ViewComponent { get; set; }
         }
 
         public OnAfterViewComponentEventData AfterViewComponent { get; set; }
@@ -257,13 +263,15 @@ namespace Microsoft.AspNet.Mvc
         public virtual void OnAfterViewComponent(
             IProxyActionDescriptor actionDescriptor,
             IProxyViewComponentContext viewComponentContext,
-            IProxyViewComponentResult viewComponentResult)
+            IProxyViewComponentResult viewComponentResult,
+            object viewComponent)
         {
             AfterViewComponent = new OnAfterViewComponentEventData()
             {
                 ActionDescriptor = actionDescriptor,
                 ViewComponentContext = viewComponentContext,
-                ViewComponentResult = viewComponentResult
+                ViewComponentResult = viewComponentResult,
+                ViewComponent = viewComponent
             };
         }
 

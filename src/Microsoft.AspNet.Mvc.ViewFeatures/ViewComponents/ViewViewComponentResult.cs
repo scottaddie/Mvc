@@ -124,11 +124,11 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     _diagnosticSource = context.ViewContext.HttpContext.RequestServices.GetRequiredService<DiagnosticSource>();
                 }
 
-                _diagnosticSource.ViewComponentBeforeViewExecute(context.ViewContext.ActionDescriptor, context, view);
+                _diagnosticSource.ViewComponentBeforeViewExecute(context, view);
 
                 await view.RenderAsync(childViewContext);
 
-                _diagnosticSource.ViewComponentAfterViewExecute(context.ViewContext.ActionDescriptor, context, view);
+                _diagnosticSource.ViewComponentAfterViewExecute(context, view);
             }
         }
 

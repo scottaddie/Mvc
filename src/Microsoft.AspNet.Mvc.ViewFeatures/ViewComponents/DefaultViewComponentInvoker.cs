@@ -61,30 +61,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_CannotFindMethod(ViewComponentMethodSelector.SyncMethodName));
             }
 
-            if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
-            {
-                _diagnosticSource.Write(
-                    "Microsoft.AspNet.Mvc.BeforeViewComponent",
-                    new
-                    {
-                        actionDescriptor = context.ViewContext.ActionDescriptor,
-                        viewComponentContext = context
-                    });
-            }
-
             var result = InvokeSyncCore(method, context);
-
-            if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
-            {
-                _diagnosticSource.Write(
-                    "Microsoft.AspNet.Mvc.AfterViewComponent",
-                    new
-                    {
-                        actionDescriptor = context.ViewContext.ActionDescriptor,
-                        viewComponentContext = context,
-                        viewComponentResult = result
-                    });
-            }
 
             result.Execute(context);
         }
@@ -116,39 +93,12 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 }
                 else
                 {
-                    _diagnosticSource.BeforeViewComponent(context.ViewContext.ActionDescriptor, context);
-
                     result = InvokeSyncCore(syncMethod, context);
-
-                    _diagnosticSource.AfterViewComponent(context.ViewContext.ActionDescriptor, context, result);
                 }
             }
             else
             {
-                if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
-                {
-                    _diagnosticSource.Write(
-                        "Microsoft.AspNet.Mvc.BeforeViewComponent",
-                        new
-                        {
-                            actionDescriptor = context.ViewContext.ActionDescriptor,
-                            viewComponentContext = context
-                        });
-                }
-
                 result = await InvokeAsyncCore(asyncMethod, context);
-
-                if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
-                {
-                    _diagnosticSource.Write(
-                        "Microsoft.AspNet.Mvc.AfterViewComponent",
-                        new
-                        {
-                            actionDescriptor = context.ViewContext.ActionDescriptor,
-                            viewComponentContext = context,
-                            viewComponentResult = result
-                        });
-                }
             }
 
             await result.ExecuteAsync(context);
@@ -185,9 +135,15 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
             var component = CreateComponent(context);
 
+            _diagnosticSource.BeforeViewComponent(context, component);
+
             var result = await ControllerActionExecutor.ExecuteAsync(method, component, context.Arguments);
 
-            return CoerceToViewComponentResult(result);
+            var viewComponentResult = CoerceToViewComponentResult(result);
+
+            _diagnosticSource.AfterViewComponent(context, viewComponentResult, component);
+
+            return viewComponentResult;
         }
 
         public IViewComponentResult InvokeSyncCore(MethodInfo method, ViewComponentContext context)
@@ -206,6 +162,8 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
             object result = null;
 
+            _diagnosticSource.BeforeViewComponent(context, component);
+
             try
             {
                 result = method.Invoke(component, context.Arguments);
@@ -217,7 +175,11 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 exceptionInfo.Throw();
             }
 
-            return CoerceToViewComponentResult(result);
+            var viewComponentResult = CoerceToViewComponentResult(result);
+
+            _diagnosticSource.AfterViewComponent(context, viewComponentResult, component);
+
+            return viewComponentResult;
         }
 
         private static IViewComponentResult CoerceToViewComponentResult(object value)

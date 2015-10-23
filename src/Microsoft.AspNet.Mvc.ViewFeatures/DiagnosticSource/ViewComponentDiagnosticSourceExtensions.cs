@@ -12,8 +12,8 @@ namespace Microsoft.AspNet.Mvc.Diagnostics
     {
         public static void BeforeViewComponent(
             this DiagnosticSource diagnosticSource,
-            ActionDescriptor actionDescriptor,
-            ViewComponentContext context)
+            ViewComponentContext context,
+            object viewComponent)
         {
             if (diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.BeforeViewComponent"))
             {
@@ -22,16 +22,17 @@ namespace Microsoft.AspNet.Mvc.Diagnostics
                 new
                 {
                     actionDescriptor = context.ViewContext.ActionDescriptor,
-                    viewComponentContext = context
+                    viewComponentContext = context,
+                    viewComponent = viewComponent
                 });
             }
         }
 
         public static void AfterViewComponent(
             this DiagnosticSource diagnosticSource,
-            ActionDescriptor actionDescriptor,
             ViewComponentContext context,
-            IViewComponentResult result)
+            IViewComponentResult result,
+            object viewComponent)
         {
             if (diagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.AfterViewComponent"))
             {
@@ -41,14 +42,14 @@ namespace Microsoft.AspNet.Mvc.Diagnostics
                 {
                     actionDescriptor = context.ViewContext.ActionDescriptor,
                     viewComponentContext = context,
-                    viewComponentResult = result
+                    viewComponentResult = result,
+                    viewComponent = viewComponent
                 });
             }
         }
 
         public static void ViewComponentBeforeViewExecute(
             this DiagnosticSource diagnosticSource,
-            ActionDescriptor actionDescriptor,
             ViewComponentContext context,
             IView view)
         {
@@ -58,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.Diagnostics
                     "Microsoft.AspNet.Mvc.ViewComponentBeforeViewExecute",
                     new
                     {
-                        actionDescriptor = actionDescriptor,
+                        actionDescriptor = context.ViewContext.ActionDescriptor,
                         viewComponentContext = context,
                         view = view
                     });
@@ -67,7 +68,6 @@ namespace Microsoft.AspNet.Mvc.Diagnostics
 
         public static void ViewComponentAfterViewExecute(
             this DiagnosticSource diagnosticSource,
-            ActionDescriptor actionDescriptor,
             ViewComponentContext context,
             IView view)
         {
@@ -77,7 +77,7 @@ namespace Microsoft.AspNet.Mvc.Diagnostics
                     "Microsoft.AspNet.Mvc.ViewComponentAfterViewExecute",
                     new
                     {
-                        actionDescriptor = actionDescriptor,
+                        actionDescriptor = context.ViewContext.ActionDescriptor,
                         viewComponentContext = context,
                         view = view
                     });

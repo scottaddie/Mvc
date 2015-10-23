@@ -181,9 +181,11 @@ namespace Microsoft.AspNet.Mvc
 
             Assert.NotNull(adapter.BeforeViewComponent?.ActionDescriptor);
             Assert.NotNull(adapter.BeforeViewComponent?.ViewComponentContext);
+            Assert.NotNull(adapter.BeforeViewComponent?.ViewComponent);
             Assert.NotNull(adapter.AfterViewComponent?.ActionDescriptor);
             Assert.NotNull(adapter.AfterViewComponent?.ViewComponentContext);
             Assert.NotNull(adapter.AfterViewComponent?.ViewComponentResult);
+            Assert.NotNull(adapter.AfterViewComponent?.ViewComponent);
         }
 
         [Fact]
